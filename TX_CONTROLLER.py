@@ -13,8 +13,7 @@ yaw = 0
 
 # NO NEED TO MAKE FUNCTIONS FOR THIS CONTROLLER
 # JUST USE WHILE LOOP
-display.show(Image.HAPPY)
-
+display.set_pixel(0, 0, 9)
 while True:
 
     # INITIALISE COMMAND OUTPUT STRING
@@ -26,23 +25,35 @@ while True:
     # "IS" could be caught out by sleep timer
 
     # ARM THE DRONE USING BOTH BUTTONS
+    # need is_pressed for arming, because we press a and then b after some time,
+    # this will result in arming.
     if button_a.is_pressed() and button_b.is_pressed():
         # if button a and b was pressed - arm / disarm depending on current state
         throttle = 0
         if arm == 0:
             arm = 1
+            # without arm drone cannot do anything, as soon as both buttons are pressed,
+            # send arm command
+            command = str(pitch) + "|" + str(arm) + "|" + str(roll) + "|" + str(throttle) + "|" + str(yaw)
+            radio.send(command)
+            display.clear()
+            display.set_pixel(1, 1, 9)
+            sleep(50) # to prevent switch bouncing effect
         else:
+            display.clear()
+            display.set_pixel(0, 0, 9)
             arm = 0
+            sleep(50) # to prevent switch bouncing effect
 
     # Decrease THROTTLE WITH A BUTTON
     # If button a was pressed decrease throttle by 5
-    if arm == 1 and button_a.is_pressed():
-        throttle -= 5
+    if arm == 1 and button_a.was_pressed():
+        throttle = throttle - 5
 
     # Increase THROTTLE WITH B BUTTON
     # If button b was pressed decrease throttle by 5
-    if arm == 1 and button_b.is_pressed():
-        throttle += 5
+    if arm == 1 and button_b.was_pressed():
+        throttle = throttle + 5
 
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures

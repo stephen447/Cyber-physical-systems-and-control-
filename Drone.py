@@ -31,12 +31,12 @@ offset2 = 521  # for roll
 
 # channel ID, Each need
 roll_id = 0
-pitch_id = 1 << 2
-throttle_id = 2 << 2
-yaw_id = 3 << 2
-arm_id = 4 << 2
-flight_mode_id = 5 << 2
-buzzer_id = 6 << 2
+pitch_id = 1
+throttle_id = 2
+yaw_id = 3
+arm_id = 4
+flight_mode_id = 5
+buzzer_id = 6
 
 # buffer
 buffer = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -79,6 +79,13 @@ def load_buffer():
     buffer[14] = (buzzer_id << 2) + ((mask_msb & buzzer) >> 6)
     buffer[15] = mask_lsb & buzzer
 
+def display_throttle():
+    if throttle > 0:
+        display.set_pixel(5, 5, 9)
+    if throttle > 20:
+        display.set_pixel(4, 4, 9)
+    if throttle > 50:
+        display.set_pixel(3, 3, 9)
 
 # NO NEED TO MAKE FUNCTIONS FOR THIS CONTROLLER
 # JUST USE WHILE LOOP
@@ -91,7 +98,7 @@ while True:
 
     # need to consider if everything should be inside incoming or can it be outside??
     if incoming:
-
+        #display.scroll(incoming)
         parsed_incoming = incoming.split("|", 5)
         pitch = int(parsed_incoming[0])
         arm = int(parsed_incoming[1])
@@ -99,32 +106,26 @@ while True:
         throttle = int(parsed_incoming[3])
         yaw = int(parsed_incoming[4])
 
-
     if arm == 1:
         display.clear()
         display.set_pixel(1, 1, 9)
+
         # command need to be scaled and offset before going into buffer
-        pitch = scale1 * pitch + offset1
-        roll = scale1 * roll + offset2
-        throttle = scale1 * throttle + offset1
-        yaw = scale2 * yaw + offset1
-
-        if arm == 0:
-            arm = 0
-        else:
-            arm = scale2 * arm + offset1
-
-        throttle = (throttle * offset1) / 50
-
+        pitch = round(scale1 * pitch + offset1)
+        roll = round(scale1 * roll + offset2)
+        throttle = round(scale1 * throttle + offset1)
+        yaw = round(scale2 * yaw + offset1)
+        arm = round(scale2 * arm + offset1)
+        throttle = round((throttle * offset1) / 50) # round to nearest decimal
 
         load_buffer()
 
         buffer = bytearray(buffer)
         # initialize UART communication
         uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin0, rx=pin1)
+        uart.write(buffer)
 
-
-
+    #display_throttle()
 
     if arm == 0:
         # pixel (0,0) lights up.
@@ -132,4 +133,5 @@ while True:
         display.set_pixel(0, 0, 9)
 
 
-    sleep(500)
+
+    sleep(150)

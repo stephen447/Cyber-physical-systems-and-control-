@@ -39,44 +39,45 @@ flight_mode_id = 5
 buzzer_id = 6
 
 # buffer
-buffer = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+# buffer = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+buffer = bytearray(16)
 
 def load_buffer():
-    #mask_lsb = 0b00111111
-    #mask_msb = 0b11000000
-    mask_lsb = 63
-    mask_msb = 192
-
-    #Given
+    # mask_lsb = 0b00111111
+    # mask_msb = 0b11000000
+    mask_lsb = 255
+    mask_msb = 768
+    
+    # Given
     buffer[0] = 0
     buffer[1] = 0x01
 
-    #Roll
-    buffer[2] = (roll_id << 2) + ((mask_msb & roll) >> 6)
-    buffer[3] = mask_lsb & roll
+    # Roll
+    buffer[2] = (roll_id << 2) | ((mask_msb & scaled_roll) >> 8)
+    buffer[3] = mask_lsb & scaled_roll
 
-    #Pitch
-    buffer[4] = (pitch_id << 2) + ((mask_msb & pitch) >> 6)
-    buffer[5] = mask_lsb & pitch
+    # Pitch
+    buffer[4] = (pitch_id << 2) | ((mask_msb & scaled_pitch) >> 8)
+    buffer[5] = mask_lsb & scaled_pitch
 
-    #Throttle
-    buffer[6] = (throttle_id << 2) + ((mask_msb & throttle) >> 6)
-    buffer[7] = mask_lsb & throttle
+    # Throttle
+    buffer[6] = (throttle_id << 2) | ((mask_msb & scaled_throttle) >> 8)
+    buffer[7] = mask_lsb & scaled_throttle
 
-    #Yaw
-    buffer[8] = (yaw_id << 2) + ((mask_msb & yaw) >> 6)
-    buffer[9] = mask_lsb & yaw
+    # Yaw
+    buffer[8] = (yaw_id << 2) | ((mask_msb & scaled_yaw) >> 8)
+    buffer[9] = mask_lsb & scaled_yaw
 
-    #Arm
-    buffer[10] = (arm_id << 2) + ((mask_msb & arm) >> 6)
-    buffer[11] = mask_lsb & arm
+    # Arm
+    buffer[10] = (arm_id << 2) | ((mask_msb & scaled_arm) >> 8)
+    buffer[11] = mask_lsb & scaled_arm
 
-    #Flightmode
-    buffer[12] = (flight_mode_id << 2) + ((mask_msb & flight) >> 6)
+    # Flightmode
+    buffer[12] = (flight_mode_id << 2) | ((mask_msb & flight) >> 8)
     buffer[13] = mask_lsb & flight
 
-    #Buzzer
-    buffer[14] = (buzzer_id << 2) + ((mask_msb & buzzer) >> 6)
+    # Buzzer
+    buffer[14] = (buzzer_id << 2) | ((mask_msb & buzzer) >> 8)
     buffer[15] = mask_lsb & buzzer
 
 def display_throttle():
@@ -98,7 +99,7 @@ while True:
 
     # need to consider if everything should be inside incoming or can it be outside??
     if incoming:
-        #display.scroll(incoming)
+        # display.scroll(incoming)
         parsed_incoming = incoming.split("|", 5)
         pitch = int(parsed_incoming[0])
         arm = int(parsed_incoming[1])
@@ -112,12 +113,12 @@ while True:
         display.set_pixel(1, 1, 9)
 
         # command need to be scaled and offset before going into buffer
-        pitch = round(scale1 * pitch + offset1)
-        roll = round(scale1 * roll + offset2)
-        throttle = round(scale1 * throttle + offset1)
-        yaw = round(scale2 * yaw + offset1)
-        arm = round(scale2 * arm + offset1)
-        throttle = round((throttle * offset1) / 50) # round to nearest decimal
+        scaled_pitch = round(scale1 * pitch + offset1)
+        scaled_roll = round(scale1 * roll + offset2)
+        scaled_throttle = round(scale1 * throttle + offset1)
+        scaled_yaw = round(scale2 * yaw + offset1)
+        scaled_arm = round(scale2 * arm + offset1)
+        scaled_throttle = round((throttle * offset1) / 50)  # round to nearest decimal
 
         load_buffer()
 
@@ -127,13 +128,11 @@ while True:
 
         uart.write(bytes(buffer))
 
-    #display_throttle()
+    # display_throttle()
 
     if arm == 0:
         # pixel (0,0) lights up.
         display.clear()
         display.set_pixel(0, 0, 9)
-
-
 
     sleep(150)

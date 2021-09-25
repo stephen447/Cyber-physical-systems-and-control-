@@ -3,6 +3,7 @@ import radio   # WORTH CHECKING OUT RADIO CLASS IN BBC MICRO DOCS
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+# channel can be 0-83
 
 # INITIALISE COMMANDS (PARTY)
 pitch = 0
@@ -54,6 +55,7 @@ while True:
     # If button b was pressed decrease throttle by 5
     if arm == 1 and button_b.was_pressed():
         throttle = throttle + 5
+        # display.scroll(throttle)
 
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures

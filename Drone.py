@@ -105,6 +105,7 @@ while True:
         roll = int(parsed_incoming[2])
         throttle = int(parsed_incoming[3])
         yaw = int(parsed_incoming[4])
+        #display.scroll(throttle)
 
     if arm == 1:
         display.clear()
@@ -120,10 +121,11 @@ while True:
 
         load_buffer()
 
-        buffer = bytearray(buffer)
+        # buffer = bytearray(buffer)
         # initialize UART communication
         uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin0, rx=pin1)
-        uart.write(buffer)
+
+        uart.write(bytes(buffer))
 
     #display_throttle()
 

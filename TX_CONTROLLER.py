@@ -7,7 +7,7 @@ radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 # channel can be 0-83
 
 #initialize UART communication
-uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 
 # INITIALISE COMMANDS (PARTY)
 pitch = 0
@@ -58,7 +58,7 @@ while True:
     # If button b was pressed decrease throttle by 5
     if arm == 1 and button_b.was_pressed():
         throttle = throttle + 5
-        display.scroll(throttle)
+        #display.scroll(throttle)
 
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)
     #if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
@@ -75,11 +75,6 @@ while True:
     # Will probably need to normalise roll, pitch and yaw values
 
     # UPDATE COMMAND STRING TO BE SENT OUT WITH CONCATENATED PARTY COMMANDS
-
-    # For debugging Delete this later on
-    pitch = 0
-    roll = 0
-    yaw = 0
 
     # do you need to include this at the end of command "\n" ???
     command = str(pitch) + "|" + str(arm) + "|" + str(roll) + "|" + str(throttle) + "|" + str(yaw)

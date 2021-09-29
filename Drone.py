@@ -59,7 +59,11 @@ def load_buffer():
     # mask_lsb = 0b0011111111
     # mask_msb = 0b1100000000
     mask_lsb = 255
+<<<<<<< HEAD
     mask_msb = 3
+=======
+    mask_msb = 768
+>>>>>>> d1692a67a937e276e413db97017463b939cee1b2
 
     # Given
     buffer[0] = 0
@@ -151,8 +155,15 @@ while True:
             uart.write(buffer)
             #print(uart.write(buffer))
 
+<<<<<<< HEAD
             #if uart.any():
             #    display.show(Image.HAPPY)
+=======
+        # buffer = bytearray(buffer)
+        # initialize UART communication
+        uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin2)
+        uart.write(buffer)
+>>>>>>> d1692a67a937e276e413db97017463b939cee1b2
 
             #display_throttle()
 

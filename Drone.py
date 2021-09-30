@@ -1,3 +1,4 @@
+# Write your code here :-)
 # 21.09.2021
 
 # Aurthor - Keshav Sapkota and Stephen Bryne
@@ -10,11 +11,11 @@ import micropython
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel=77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
-micropython.kbd_intr(-1) # enabling or disabling keyboard interrupt
+micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
 
 #initialize UART communication
-uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin0)
-#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin0, rx=pin1)
+uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 
 # INITIALISE COMMANDS (PARTY)
 pitch = 0
@@ -103,7 +104,7 @@ def load_buffer():
     buffer[9] = mask_lsb & scaled_yaw
 
     # Arm
-    buffer[10] = (arm_id << 2) |  ((scaled_arm >> 8) & mask_msb)
+    buffer[10] = (arm_id << 2) | ((scaled_arm >> 8) & mask_msb)
     buffer[11] = mask_lsb & scaled_arm
 
     # Flightmode
@@ -114,7 +115,7 @@ def load_buffer():
     buffer[14] = (buzzer_id << 2) | ((scaled_buzzer >> 8) & mask_msb)
     buffer[15] = mask_lsb & scaled_buzzer
 
-    print(buffer)
+    print("Buffer is", buffer)
 
 
 def display_throttle():
@@ -138,7 +139,7 @@ while True:
         print("incoming")
 
         parsed_incoming = incoming.split("|", 5)
-        print(parsed_incoming)
+        print("Parsed incoming", parsed_incoming)
 
         pitch = int(parsed_incoming[0])
         arm = int(parsed_incoming[1])
@@ -158,24 +159,27 @@ while True:
 
             # TOM MENTIONED THAT SCALED_FLIGHT_MODE SHOULD BE 1023 (NOT SURE WHY)
             scaled_pitch = int((scale1 * pitch) + offset1)
+            scaled_pitch = int(((scaled_pitch+7512)/15024)*1023)
             if scaled_pitch > 1023:
                 scaled_pitch = 1023
             scaled_roll = int((scale1 * roll) + offset2)
+            scaled_roll = int(((scaled_roll+7521)/15042)*1023)
             if scaled_roll > 1023:
                 scaled_roll = 1023
-
             scaled_throttle = int((scale1 * throttle) + offset1)
             scaled_throttle = int((scaled_throttle * offset1) / 50)  # round to nearest decimal
             if scaled_throttle > 1023:
                 scaled_throttle = 1023
             scaled_yaw = int((scale2 * yaw) + offset1)
+            scaled_yaw = int(((scaled_yaw+10512)/21024)*1023)
             if scaled_yaw > 1023:
                 scaled_yaw = 1023
             scaled_arm = int(180 * scale2 * arm)
             scaled_flight_mode = int(flight * scale2 + offset1)
             #scaled_flight_mode = 1023
             scaled_buzzer = 0
-
+        
+            print("PARTY")
             print(scaled_pitch)
             print(scaled_arm)
             print(scaled_roll)

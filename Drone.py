@@ -97,14 +97,6 @@ def load_buffer():
     print(buffer)
 
 
-def display_throttle():
-    if scaled_throttle > 0:
-        display.set_pixel(5, 5, 9)
-    if scaled_throttle > 20:
-        display.set_pixel(5, 4, 9)
-    if scaled_throttle > 50:
-        display.set_pixel(5, 3, 9)
-
 
 # NO NEED TO MAKE FUNCTIONS FOR THIS CONTROLLER
 # JUST USE WHILE LOOP

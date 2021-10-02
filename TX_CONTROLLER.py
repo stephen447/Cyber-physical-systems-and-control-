@@ -40,28 +40,6 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 
 while True:
 
-    # Get (x,y,z) coordinates
-    # Using accelerometer class to get rotation in x-axis
-    # roll = accelerometer.get_x()
-    # Using accelerometer class to get rotation in y-axis
-    # pitch = accelerometer.get_y()
-    # Using accelerometer class to get rotation in z-axis
-    # yaw = accelerometer.get_z()
-
-    roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
-    if roll>90: roll=90
-    if roll<-90: roll=-90
-    print("roll ", roll)
-
-    pitch=mapping(accelerometer.get_y(),-1024,1024,-90,90)
-    if pitch>90: pitch=90
-    if pitch<-90: pitch=-90
-    print("pitch ", pitch)
-
-    yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)
-    if yaw>90: yaw=90
-    if yaw<-90: yaw=-90
-    print("yaw ", yaw)
 
     # Arming
     # ARM THE DRONE USING BOTH BUTTONS
@@ -100,6 +78,30 @@ while True:
     # Map throttle
     if throttle > 95: throttle = 95
     if throttle < 0 : throttle = 0
+
+
+        # Get (x,y,z) coordinates
+    # Using accelerometer class to get rotation in x-axis
+    # roll = accelerometer.get_x()
+    # Using accelerometer class to get rotation in y-axis
+    # pitch = accelerometer.get_y()
+    # Using accelerometer class to get rotation in z-axis
+    # yaw = accelerometer.get_z()
+
+    roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
+    if roll>90: roll=90
+    if roll<-90: roll=-90
+    print("roll ", roll)
+
+    pitch=mapping(accelerometer.get_y(),-1024,1024,-90,90)
+    if pitch>90: pitch=90
+    if pitch<-90: pitch=-90
+    print("pitch ", pitch)
+
+    yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)
+    if yaw>90: yaw=90
+    if yaw<-90: yaw=-90
+    print("yaw ", yaw)
 
 
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)

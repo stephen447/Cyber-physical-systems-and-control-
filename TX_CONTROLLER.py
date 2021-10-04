@@ -4,7 +4,7 @@ import micropython
 import math
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel = 1)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 # channel can be 0-83
 micropython.kbd_intr(-1)
@@ -39,7 +39,7 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 
 
 while True:
-
+    #print("YAW IS THIS ", accelerometer.get_z())
 
     # Arming
     # ARM THE DRONE USING BOTH BUTTONS
@@ -88,22 +88,30 @@ while True:
     # Using accelerometer class to get rotation in z-axis
     # yaw = accelerometer.get_z()
 
-    roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
+    #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
+    roll=mapping(accelerometer.get_x(),-1024,1024,0,1023)
     if roll>90: roll=90
     if roll<-90: roll=-90
     print("roll ", roll)
 
-    pitch=mapping(accelerometer.get_y(),-1024,1024,-90,90)
+    #pitch=mapping(accelerometer.get_y(),-1024,1024,-90,90)
+    pitch=mapping(accelerometer.get_y(),-1024,1024,0,1023)
     if pitch>90: pitch=90
     if pitch<-90: pitch=-90
     print("pitch ", pitch)
 
-    yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)
+    '''yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)
     if yaw>90: yaw=90
     if yaw<-90: yaw=-90
-    print("yaw ", yaw)
 
+    yaw=mapping(accelerometer.get_z(),-1024,1024,0,1023)
+    if yaw>1023: yaw=1023
+    if yaw<0: yaw=0
+    print("yaw ", yaw)'''
 
+    yaw = 0
+
+    #failsafe
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)
     #if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
     #    arm = 0
@@ -118,7 +126,7 @@ while True:
     # print(command)
     # display.scroll(command)
 
-    sleep(1000)
+    sleep(50)
     # sleep() IS YOUR FRIEND, FIND GOOD
     # VALUE FOR LENGTH OF SLEEP NEEDED TO FUNCTION WITHOUT COMMANDS GETTING MISSED BY
     # THE DRONE

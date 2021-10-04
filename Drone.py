@@ -10,12 +10,12 @@ import radio  # WORTH CHECKING OUT RADIO CLASS IN BBC MICRO DOCS
 import micropython
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel=1)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
-micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
+radio.config(channel=77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+#micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
 
 #initialize UART communication
-#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin2)
-uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
+#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 
 # INITIALISE COMMANDS (PARTY)
 pitch = 0
@@ -26,21 +26,12 @@ yaw = 0
 flight_mode = 1
 buzzer = 0
 
-scaled_roll = 0
-scaled_pitch = 0
-scaled_buzzer = 0
-scaled_flight_mode = 0
-scaled_throttle = 0
-scaled_arm = 0
-scaled_yaw = 0
-
 # Scaling, scale by 3.5 for pitch, roll, throttle and 5 for yaw, arm and flight mode
 # values and formulas are obtained from CPS_Lab2 lecture slide
 scale1 = 3.5
 scale2 = 5
 offset1 = 512
 offset2 = 521  # for roll
-
 
 # channel ID, Each need
 roll_id = 0
@@ -51,51 +42,89 @@ arm_id = 4
 flight_mode_id = 5
 buzzer_id = 6
 
-incoming = ""
-
-buffer = bytearray(16)
 
 # NEED TO MAKE SURE BUFFER HAS THE VALUES WE EXPECT AND NO UNUSUAL CHARACTERS
 # USE REPL TO READ FROM SERIAL, AND SET UART PINS TO NONE WHILE READING FROM UART
-def load_buffer():
-    print("inside load_buffer function")
+def flight_control(pitch, arm, roll, throttle, yaw):
+    buf = bytearray(16)
+    #print("inside load_buf function")
+
+    if arm == 1:
+        scaled_arm = int(180 * scale2)
+        display.clear()
+        display.set_pixel(1, 1, 9)
+    elif arm == 0:
+        scaled_arm = 0
+        display.clear()
+        display.set_pixel(0, 0, 9)
+
+    if throttle > 99:
+        throttle = 99
+    if throttle < 0:
+        throttle = 0
+
+    if yaw > 90:
+        yaw = 90
+    if yaw < -90:
+        yaw = -90
+
+    if pitch > 90:
+        pitch = 90
+    if pitch < -90:
+        pitch = -90
+
+    if roll > 90:
+        roll = 90
+    if roll < -90:
+        roll = -90
+
+
+    # scaling and offsetting
+    scaled_pitch = int((scale1 * pitch) + offset1)
+    scaled_roll = int((scale1 * roll) + offset1 + 9.5)
+    scaled_yaw = int((scale2 * yaw) + offset1)
+    scaled_flight_mode = int(45 * scale2)
+    #scaled_throttle = int (2 * scale1 * throttle + offset1 / 2.5)
+    scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal
+    scaled_buzzer = 0
+    #print (scaled_pitch, scaled_arm, scaled_roll, scaled_throttle, scaled_yaw, scaled_flight_mode, scaled_buzzer)
+
 
     # Given
-    buffer[0] = 0
-    buffer[1] = 0x01
+    buf[0] = 0
+    buf[1] = 0x01
 
     # Roll
-    buffer[2] = (roll_id << 2) | ((scaled_roll >> 8) & 3)
-    print("buf2 ", buffer[2])
-    buffer[3] = 255 & scaled_roll
+    buf[2] = (roll_id << 2) | ((scaled_roll >> 8) & 3)
+    #print("buf2 ", buf[2])
+    buf[3] = scaled_roll & 255
 
     # Pitch
-    buffer[4] = (pitch_id << 2) | ((scaled_pitch >> 8) & 3)
-    buffer[5] = 255 & scaled_pitch
+    buf[4] = (pitch_id << 2) | ((scaled_pitch >> 8) & 3)
+    buf[5] = scaled_pitch & 255
 
     # Throttle
-    buffer[6] = (throttle_id << 2) | ((scaled_throttle >> 8) & 3)
+    buf[6] = (throttle_id << 2) | ((scaled_throttle >> 8) & 3)
     #print(int((throttle_id << 2) | ((3 & scaled_throttle) >> 8)))
-    buffer[7] = 255 & scaled_throttle
+    buf[7] = scaled_throttle & 255
 
     # Yaw
-    buffer[8] = (yaw_id << 2) | ((scaled_yaw >> 8) & 3)
-    buffer[9] = 255 & scaled_yaw
+    buf[8] = (yaw_id << 2) | ((scaled_yaw >> 8) & 3)
+    buf[9] = scaled_yaw & 255
 
     # Arm
-    buffer[10] = (arm_id << 2) | ((scaled_arm >> 8) & 3)
-    buffer[11] = 255 & scaled_arm
+    buf[10] = (arm_id << 2) | ((scaled_arm >> 8) & 3)
+    buf[11] = scaled_arm & 255
 
     # Flightmode
-    buffer[12] = (flight_mode_id << 2) | ((scaled_flight_mode >> 8) & 3)
-    buffer[13] = 255 & scaled_flight_mode
+    buf[12] = (flight_mode_id << 2) | ((scaled_flight_mode >> 8) & 3)
+    buf[13] = scaled_flight_mode & 255
 
     # Buzzer
-    buffer[14] = (buzzer_id << 2) | ((scaled_buzzer >> 8) & 3)
-    buffer[15] = 255 & scaled_buzzer
+    buf[14] = (buzzer_id << 2) | ((scaled_buzzer >> 8) & 3)
+    buf[15] = scaled_buzzer & 255
 
-    print(buffer)
-
+    uart.write(buf)
 
 
 # NO NEED TO MAKE FUNCTIONS FOR THIS CONTROLLER
@@ -107,54 +136,20 @@ while True:
     # need to consider if everything should be inside incoming or can it be outside??
     if incoming:
         #display.scroll(incoming)
-        print("incoming")
+        #print("incoming")
 
         parsed_incoming = incoming.split(",")
-        print("Parsed incoming", parsed_incoming)
+        #print("Parsed incoming", parsed_incoming)
 
         pitch = int(parsed_incoming[0])
         arm = int(parsed_incoming[1])
         roll = int(parsed_incoming[2])
         throttle = int(parsed_incoming[3])
         yaw = int(parsed_incoming[4])
-        #display.scroll(throttle)
-
-
-        # scaling and offsetting
-        scaled_pitch = int((scale1 * pitch) + offset1)
-        scaled_roll = int((scale1 * roll) + offset2)
-        scaled_yaw = int((scale2 * yaw) + offset1)
-        scaled_flight_mode = int(180 * scale2)
-        scaled_throttle = int (2 * scale1 * throttle + offset1 / 2.5)
-        #scaled_throttle = int((scale1 * throttle) + offset1)
-        #scaled_throttle = int((scaled_throttle * offset1) / 50)  # round to nearest decimal
-        scaled_buzzer = 0
-        print (scaled_pitch, scaled_arm, scaled_roll, scaled_throttle, scaled_yaw, scaled_flight_mode, scaled_buzzer)
 
         if arm == 1:
-            scaled_arm = int(180 * scale2)
-            display.clear()
-            display.set_pixel(1, 1, 9)
-        elif arm == 0:
-            scaled_arm = 0
-            display.clear()
-            display.set_pixel(0, 0, 9)
-
-        # load buffer
-        print("loading buffer")
-        load_buffer()
-        print("writing to buffer")
-        uart.write(buffer)
-
-    print("sleep")
-    sleep(1500)
-
-    '''
-        print("PARTY")
-        print(scaled_pitch)
-        print(scaled_arm)
-        print(scaled_roll)
-        print(scaled_throttle)
-        print(scaled_yaw)
-        print(scaled_flight_mode) '''
+            flight_control(pitch, arm, roll, throttle, yaw)
+        else:
+            flight_control(0, 0, 0, 0, 0)
+        sleep(50)
 

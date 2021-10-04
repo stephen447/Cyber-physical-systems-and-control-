@@ -26,7 +26,6 @@ display.set_pixel(0, 0, 9)
 # INITIALISE COMMAND OUTPUT STRING
 command = ""
 
-
 def mapping(value, fromLow, fromHigh, toLow, toHigh):
     a = (toLow - toHigh) / (fromLow - fromHigh)
     b = toHigh - a * fromHigh
@@ -88,16 +87,16 @@ while True:
     # Using accelerometer class to get rotation in z-axis
     # yaw = accelerometer.get_z()
 
-    roll=mapping(accelerometer.get_x(),-1024,1024,-20,20)
-    #roll=mapping(accelerometer.get_x(),-1024,1024,0,1023)
-    if roll>90: roll=90
-    if roll<-90: roll=-90
+    #roll=mapping(accelerometer.get_x(),-1024,1024,-20,20)
+    roll=-mapping(int(pin0.read_analog()),0,1023,-20,20)
+    if roll>20: roll=20
+    if roll<-20: roll=-20
     print("roll ", roll)
 
-    pitch=-mapping(accelerometer.get_y(),-1024,1024,-20,20)
-    #pitch=mapping(accelerometer.get_y(),-1024,1024,0,1023)
-    if pitch>90: pitch=90
-    if pitch<-90: pitch=-90
+    pitch=-mapping(int(pin1.read_analog()),0,1023,-20,20)
+    #pitch=mapping(accelerometer.get_y(),-1024,1024,-20,20)
+    if pitch>20: pitch=20
+    if pitch<-20: pitch=-20
     print("pitch ", pitch)
 
     '''yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)

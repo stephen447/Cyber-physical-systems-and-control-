@@ -76,7 +76,7 @@ while True:
 
 
     # Map throttle
-    if throttle > 95: throttle = 95
+    if throttle > 100: throttle = 100
     if throttle < 0 : throttle = 0
 
 
@@ -88,14 +88,14 @@ while True:
     # Using accelerometer class to get rotation in z-axis
     # yaw = accelerometer.get_z()
 
-    #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
-    roll=mapping(accelerometer.get_x(),-1024,1024,0,1023)
+    roll=mapping(accelerometer.get_x(),-1024,1024,-20,20)
+    #roll=mapping(accelerometer.get_x(),-1024,1024,0,1023)
     if roll>90: roll=90
     if roll<-90: roll=-90
     print("roll ", roll)
 
-    #pitch=mapping(accelerometer.get_y(),-1024,1024,-90,90)
-    pitch=mapping(accelerometer.get_y(),-1024,1024,0,1023)
+    pitch=-mapping(accelerometer.get_y(),-1024,1024,-20,20)
+    #pitch=mapping(accelerometer.get_y(),-1024,1024,0,1023)
     if pitch>90: pitch=90
     if pitch<-90: pitch=-90
     print("pitch ", pitch)
@@ -111,17 +111,22 @@ while True:
 
     yaw = 0
 
+
     #failsafe
     # USE ACCLEREROMETER CLASS FOR DEALING WITH ROLL, PITCH AND YAW (X, Y AND Z AXES)
-    #if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
-    #    arm = 0
-    #    throttle = 0
+    if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
+        arm = 0
+        throttle = 0
+        display.clear()
+        display.set_pixel(0, 0, 9)
+
 
 
     # do you need to include this at the end of command "\n" ???
     command = str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
     print(command)
     radio.send(command)  # Send command via radio
+    #display.scroll(throttle)
 
     # print(command)
     # display.scroll(command)

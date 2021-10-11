@@ -7,7 +7,15 @@ radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 # channel can be 0-83
-micropython.kbd_intr(-1)
+# micropython.kbd_intr(-1)
+Msg = " "
+count = 0
+count_interval = 200
+total = 0
+battery:float = 0
+total_battery:float = 0
+avg_battery:float = 0
+true_battery:float = 0
 
 #initialize UART communication
 #uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
@@ -25,6 +33,40 @@ display.set_pixel(0, 0, 9)
 
 # INITIALISE COMMAND OUTPUT STRING
 command = ""
+def display_battery_level(b)->none:
+
+    battery_percent = ((b-300)/(1023-300))
+
+    if battery_percent >= 0.6 and battery_percent < 0.8:
+        display.set_pixel(4,0,0)
+        display.set_pixel(4,1,9)
+        display.set_pixel(4,2,9)
+        display.set_pixel(4,3,9)
+        display.set_pixel(4,4,9)
+
+    elif battery_percent >= 0.4 and battery_percent < 0.6:
+        display.set_pixel(4,0,0)
+        display.set_pixel(4,1,0)
+        display.set_pixel(4,2,9)
+        display.set_pixel(4,3,9)
+        display.set_pixel(4,4,9)
+
+    elif battery_percent >= 0.2 and battery_percent < 0.4:
+        display.set_pixel(4,0,0)
+        display.set_pixel(4,1,0)
+        display.set_pixel(4,2,0)
+        display.set_pixel(4,3,9)
+        display.set_pixel(4,4,9)
+
+    elif battery_percent < 0.2:
+        display.show(Image.SKULL)
+
+    else:
+        display.set_pixel(4,0,9)
+        display.set_pixel(4,1,9)
+        display.set_pixel(4,2,9)
+        display.set_pixel(4,3,9)
+        display.set_pixel(4,4,9)
 
 def mapping(value, fromLow, fromHigh, toLow, toHigh):
     a = (toLow - toHigh) / (fromLow - fromHigh)
@@ -39,6 +81,29 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 
 while True:
     #print("YAW IS THIS ", accelerometer.get_z())
+    command_bat = radio.receive()
+    print(command_bat)
+    #print(type(battery))
+
+    if command_bat:
+        battery = float(command_bat)
+
+        display_battery_level(battery)
+
+        total_battery = total_battery + battery
+
+        print("Battery level:", (battery / 1023) * 3.3, "V")
+
+
+        """if count % count_interval == 0:
+            avg_battery = total_battery / count_interval
+            true_battery = (avg_battery / 1023) * 3.3
+            print("Battery level:", true_battery, "V")
+            total_battery = 0
+            if avg_battery < 300:
+                print("LOW BATTERY RUNNING EMERGENCY PROTOCOLS")
+                #emergency_safety_function() #run function when battery is low
+                #break"""
 
     # Arming
     # ARM THE DRONE USING BOTH BUTTONS
@@ -52,19 +117,19 @@ while True:
             radio.send(command)
             display.clear()
             display.set_pixel(1, 1, 9)
-            sleep(100) # to prevent switch bouncing effect
+            sleep(50) # to prevent switch bouncing effect
         else:
             throttle = 0
             display.clear()
             display.set_pixel(0, 0, 9)
             arm = 0
-            sleep(100) # to prevent switch bouncing effect
+            sleep(50) # to prevent switch bouncing effect
 
-
+    print("Analogue pin 2 value:", int(pin2.read_analog()))
     # Increase or decrease throttle
     # If button a was pressed decrease throttle by 5
-    throttle=mapping(int(pin2.read_analog()), 512,1023,-20,20)
-
+    throttle=mapping(int(pin2.read_analog()), 512,1023,0,99)
+    print("throttle is:", throttle)
 
     # Map throttle
     if throttle > 100: throttle = 100
@@ -121,7 +186,7 @@ while True:
     # print(command)
     # display.scroll(command)
 
-    sleep(100)
+    sleep(50)
     # sleep() IS YOUR FRIEND, FIND GOOD
     # VALUE FOR LENGTH OF SLEEP NEEDED TO FUNCTION WITHOUT COMMANDS GETTING MISSED BY
     # THE DRONE

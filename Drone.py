@@ -25,7 +25,6 @@ throttle = 0
 yaw = 0
 flight_mode = 1
 buzzer = 0
-battery = 0
 
 # Scaling, scale by 3.5 for pitch, roll, throttle and 5 for yaw, arm and flight mode
 # values and formulas are obtained from CPS_Lab2 lecture slide
@@ -44,53 +43,19 @@ flight_mode_id = 5
 buzzer_id = 6
 
 
-def display_battery_level(b)->none:
-
-    battery_percent = ((b-300)/(1023-300))
-
-    if battery_percent >= 0.6 and battery_percent < 0.8:
-        display.set_pixel(4,0,0)
-        display.set_pixel(4,1,9)
-        display.set_pixel(4,2,9)
-        display.set_pixel(4,3,9)
-        display.set_pixel(4,4,9)
-
-    elif battery_percent >= 0.4 and battery_percent < 0.6:
-        display.set_pixel(4,0,0)
-        display.set_pixel(4,1,0)
-        display.set_pixel(4,2,9)
-        display.set_pixel(4,3,9)
-        display.set_pixel(4,4,9)
-
-    elif battery_percent >= 0.2 and battery_percent < 0.4:
-        display.set_pixel(4,0,0)
-        display.set_pixel(4,1,0)
-        display.set_pixel(4,2,0)
-        display.set_pixel(4,3,9)
-        display.set_pixel(4,4,9)
-
-    elif battery_percent < 0.2:
-        display.show(Image.SKULL)
-
-    else:
-        display.set_pixel(4,0,9)
-        display.set_pixel(4,1,9)
-        display.set_pixel(4,2,9)
-        display.set_pixel(4,3,9)
-        display.set_pixel(4,4,9)
-
 # NEED TO MAKE SURE BUFFER HAS THE VALUES WE EXPECT AND NO UNUSUAL CHARACTERS
 # USE REPL TO READ FROM SERIAL, AND SET UART PINS TO NONE WHILE READING FROM UART
 def flight_control(pitch, arm, roll, throttle, yaw):
     buf = bytearray(16)
-
     #print("inside load_buf function")
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
+        display.clear()
         display.set_pixel(1, 1, 9)
     elif arm == 0:
         scaled_arm = 0
+        display.clear()
         display.set_pixel(0, 0, 9)
 
     if throttle > 99:
@@ -165,9 +130,6 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 # NO NEED TO MAKE FUNCTIONS FOR THIS CONTROLLER
 # JUST USE WHILE LOOP
 while True:
-    battery = pin0.read_analog()
-    display_battery_level(battery)
-    radio.send(str(battery))  #battery is not used when connected via usb
 
     incoming = radio.receive()
 

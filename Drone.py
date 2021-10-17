@@ -172,7 +172,7 @@ while True:
     radio.send(str(battery))  #battery is not used when connected via usb
 
     incoming = radio.receive()
-
+    #print(incoming)
     # need to consider if everything should be inside incoming or can it be outside??
     if incoming:
         #display.scroll(incoming)
@@ -181,14 +181,25 @@ while True:
         parsed_incoming = incoming.split(",")
         #print("Parsed incoming", parsed_incoming)
 
-        pitch = int(parsed_incoming[0])
-        arm = int(parsed_incoming[1])
-        roll = int(parsed_incoming[2])
-        throttle = int(parsed_incoming[3])
-        yaw = int(parsed_incoming[4])
-
+        pitch = int(parsed_incoming[1])
+        arm = int(parsed_incoming[2])
+        roll = int(parsed_incoming[3])
+        throttle = int(parsed_incoming[4])
+        yaw = int(parsed_incoming[5])
+        #print(pitch)
+        #print(arm)
+        #print(roll)
+        #print(throttle)
+        #print(yaw)
         if arm == 1:
-            flight_control(pitch, arm, roll, throttle, yaw)
+            #print("armed")
+            flight_control(pitch, arm, roll, throttle, 0)
+            #flight_control(0, 1, 0, 5, 0)
         else:
+            #print("disarmed")
             flight_control(0, 0, 0, 0, 0)
-        sleep(50)
+
+    sleep(50)
+
+# Troubleshoot
+# No print lines in the drone side

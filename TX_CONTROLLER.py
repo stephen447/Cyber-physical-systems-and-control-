@@ -7,8 +7,7 @@ radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 # channel can be 0-83
-# micropython.kbd_intr(-1)
-Msg = " "
+#micropython.kbd_intr(-1)
 count = 0
 count_interval = 200
 total = 0
@@ -33,7 +32,9 @@ display.set_pixel(0, 0, 9)
 
 # INITIALISE COMMAND OUTPUT STRING
 command = ""
-def display_battery_level(b)->none:
+battery_msg = ""
+
+def display_battery_level(b):#->none:
 
     battery_percent = ((b-300)/(1023-300))
 
@@ -80,31 +81,32 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 
 
 while True:
-    #print("YAW IS THIS ", accelerometer.get_z())
-    command_bat = radio.receive()
-    print(command_bat)
+    """
+    battery_msg = radio.receive()
+    print(battery_msg)
     #print(type(battery))
 
-    if command_bat:
-        battery = float(command_bat)
+    if battery_msg:
+        battery = float(battery_msg)
+        print(battery)
 
         display_battery_level(battery)
 
         total_battery = total_battery + battery
 
-        print("Battery level:", (battery / 1023) * 3.3, "V")
-
-
-        """if count % count_interval == 0:
-            avg_battery = total_battery / count_interval
-            true_battery = (avg_battery / 1023) * 3.3
-            print("Battery level:", true_battery, "V")
-            total_battery = 0
-            if avg_battery < 300:
-                print("LOW BATTERY RUNNING EMERGENCY PROTOCOLS")
-                #emergency_safety_function() #run function when battery is low
-                #break"""
-
+        #print("Battery level:", (battery / 1023) * 3.3, "V")
+    """
+    """
+    if count % count_interval == 0:
+        avg_battery = total_battery / count_interval
+        true_battery = (avg_battery / 1023) * 3.3
+        print("Battery level:", true_battery, "V")
+        total_battery = 0
+        if avg_battery < 300:
+            print("LOW BATTERY RUNNING EMERGENCY PROTOCOLS")
+            #emergency_safety_function() #run function when battery is low
+            #break
+    """
     # Arming
     # ARM THE DRONE USING BOTH BUTTONS
     # Use is_pressed function
@@ -112,31 +114,36 @@ while True:
         # if button a and b is pressed - arm / disarm depending on current state
         if arm == 0:
             arm = 1
-            print("arming")
-            command = str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
+            #print("arming")
+            command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
             radio.send(command)
-            display.clear()
+            display.set_pixel(0, 0, 0)
             display.set_pixel(1, 1, 9)
-            sleep(50) # to prevent switch bouncing effect
+            sleep(500) # to prevent switch bouncing effect
         else:
+            #print("Dis-armed")
             throttle = 0
-            display.clear()
-            display.set_pixel(0, 0, 9)
             arm = 0
-            sleep(50) # to prevent switch bouncing effect
+            command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
+            radio.send(command)
+            display.set_pixel(1, 1, 0)
+            display.set_pixel(0, 0, 9)
+            sleep(500) # to prevent switch bouncing effect
 
-    print("Analogue pin 2 value:", int(pin2.read_analog()))
+    #print("Analogue pin 2 value:", int(pin2.read_analog()))
     # Increase or decrease throttle
     # If button a was pressed decrease throttle by 5
-    throttle=mapping(int(pin2.read_analog()), 512,1023,0,99)
-    print("throttle is:", throttle)
+    throttle=mapping(int(pin2.read_analog()), 0,1023,99,0)
+    # currently the way we have throttle joystick its upside-down
+    # try 99, 0 in the above line or
 
     # Map throttle
-    if throttle > 100: throttle = 100
+    if throttle > 99: throttle = 99
     if throttle < 0 : throttle = 0
+    #print("throttle is:", throttle)
 
 
-        # Get (x,y,z) coordinates
+    # Get (x,y,z) coordinates
     # Using accelerometer class to get rotation in x-axis
     # roll = accelerometer.get_x()
     # Using accelerometer class to get rotation in y-axis
@@ -148,13 +155,13 @@ while True:
     roll=-mapping(int(pin0.read_analog()),0,1023,-20,20)
     if roll>20: roll=20
     if roll<-20: roll=-20
-    print("roll ", roll)
+    #print("roll ", roll)
 
     pitch=-mapping(int(pin1.read_analog()),0,1023,-20,20)
     #pitch=mapping(accelerometer.get_y(),-1024,1024,-20,20)
     if pitch>20: pitch=20
     if pitch<-20: pitch=-20
-    print("pitch ", pitch)
+    #print("pitch ", pitch)
 
     '''yaw=mapping(accelerometer.get_z(),-1024,1024,-90,90)
     if yaw>90: yaw=90
@@ -172,14 +179,15 @@ while True:
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
         arm = 0
         throttle = 0
-        display.clear()
+        command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
         display.set_pixel(0, 0, 9)
+        display.set_pixel(1, 1, 0)
 
 
 
     # do you need to include this at the end of command "\n" ???
-    command = str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
-    print(command)
+    command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
+    #print(command)
     radio.send(command)  # Send command via radio
     #display.scroll(throttle)
 

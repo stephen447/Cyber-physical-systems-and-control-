@@ -199,7 +199,7 @@ while True:
             #print("disarmed")
             flight_control(0, 0, 0, 0, 0)
 
-    sleep(50)
+    sleep(10)
 
 # Troubleshoot
 # No print lines in the drone side

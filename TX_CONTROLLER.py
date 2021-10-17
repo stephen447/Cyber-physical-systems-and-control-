@@ -182,6 +182,7 @@ while True:
     3) In general keep sleep(10) in both sides
     6) Don't use display.scroll function in transmitter
     7) Throttle should be 0 for arming
+    8) Wait few secs to arm, disarm, etc.
 
     4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
     6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)

@@ -11,11 +11,12 @@ import micropython
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel=77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
-#micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
+
 
 #initialize UART communication
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
 #uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
 
 # INITIALISE COMMANDS (PARTY)
 pitch = 0
@@ -47,6 +48,8 @@ buzzer_id = 6
 def display_battery_level(b)->none:
 
     battery_percent = ((b-300)/(1023-300))
+    #print(battery_percent)
+    #display.scroll(battery_percent)
 
     if battery_percent >= 0.6 and battery_percent < 0.8:
         display.set_pixel(4,0,0)
@@ -170,6 +173,7 @@ while True:
     battery = pin0.read_analog()
     display_battery_level(battery)
     radio.send(str(battery))  #battery is not used when connected via usb
+    #print(str(battery))
 
     incoming = radio.receive()
     #print(incoming)

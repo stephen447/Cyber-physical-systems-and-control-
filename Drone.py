@@ -1,4 +1,5 @@
 # Write your code here :-)
+# Write your code here :-)
 # 21.09.2021
 
 # Aurthor - Keshav Sapkota and Stephen Bryne
@@ -8,6 +9,7 @@
 from microbit import *  # NEEDS TO BE INCLUDED IN ALL CODE WRITTEN FOR MICROBIT
 import radio  # WORTH CHECKING OUT RADIO CLASS IN BBC MICRO DOCS
 import micropython
+import utime
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel=77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
@@ -44,6 +46,48 @@ arm_id = 4
 flight_mode_id = 5
 buzzer_id = 6
 
+
+# Variables for throttle PID control
+t2 = 0
+t1 = 0
+throttle_target = 500
+throttle = 0
+throttle_new_error = 0
+throttle_old_error = 0
+throttle_error_change = 0
+throttle_error_slope = 0
+throttle_error_area = 0
+throttle_p_corr = 0
+throttle_d_corr = 0
+throttle_i_corr = 0
+throttle_kp = 0.5
+throttle_ki = 0.0004
+throttle_kd = 10
+
+throttle_pid_corr = 0
+
+"""
+def throttle_pid_control(throttle):
+    t1 = t2
+    t2 = utime.tick_ms()
+    dt = t2 - t1
+    throttle_old_error = throttle_new_error
+    throttle_new_error = throttle_target - throttle
+
+    #Proportional
+    throttle_p_corr = throttle_kp * throttle_new_error
+
+    #Integral
+    throttle_error_area = throttle_error_area + dt * throttle_new_error
+    throttle_i_corr = throttle_ki * throttle_error_area
+
+    #Differential
+    throttle_error_change = throttle_new_error - throttle_old_error
+    throttle_error_slope = throttle_error_change / dt
+    throttle_d_corr = throttle_kd * throttle_error_slope
+
+    return throttle_p_corr + throttle_i_corr + throttle_d_corr
+"""
 
 def display_battery_level(b)->none:
 
@@ -97,12 +141,12 @@ def flight_control(pitch, arm, roll, throttle, yaw):
         scaled_arm = 0
         display.set_pixel(0, 0, 9)
         display.set_pixel(1, 1, 0)
-
+    """
     if throttle > 99:
         throttle = 99
     if throttle < 0:
         throttle = 0
-
+    """
     if yaw > 90:
         yaw = 90
     if yaw < -90:
@@ -124,8 +168,8 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     scaled_roll = int((scale1 * roll) + offset1 + 9.5)
     scaled_yaw = int((scale2 * yaw) + offset1)
     scaled_flight_mode = int(45 * scale2)
-    #scaled_throttle = int (2 * scale1 * throttle + offset1 / 2.5)
-    scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal
+    #scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal
+    scaled_throttle = throttle
     scaled_buzzer = 0
     #print (scaled_pitch, scaled_arm, scaled_roll, scaled_throttle, scaled_yaw, scaled_flight_mode, scaled_buzzer)
 
@@ -185,25 +229,46 @@ while True:
         parsed_incoming = incoming.split(",")
         #print("Parsed incoming", parsed_incoming)
 
+
         pitch = int(parsed_incoming[1])
         arm = int(parsed_incoming[2])
         roll = int(parsed_incoming[3])
         throttle = int(parsed_incoming[4])
         yaw = int(parsed_incoming[5])
-        #print(pitch)
-        #print(arm)
-        #print(roll)
-        #print(throttle)
-        #print(yaw)
+
+
         if arm == 1:
-            #print("armed")
-            flight_control(pitch, arm, roll, throttle, 0)
-            #flight_control(0, 1, 0, 5, 0)
+            #print("throttle_pid_corr", throttle_pid_corr)
+            flight_control(0, arm, 0, throttle_pid_corr, 0)
+            #flight_control(0, arm, 0, throttle, 0)
+
+            t1 = t2
+            t2 = utime.ticks_ms()
+            dt = t2 - t1
+
+            throttle_old_error = throttle_new_error
+            throttle_new_error = throttle_target - throttle_pid_corr
+
+            #Proportional
+            throttle_p_corr = throttle_kp * throttle_new_error
+
+            #Integral
+            throttle_error_area = throttle_error_area + dt * throttle_new_error
+            throttle_i_corr = throttle_ki * throttle_error_area
+
+            #Differential
+            throttle_error_change = throttle_new_error - throttle_old_error
+            throttle_error_slope = throttle_error_change / dt
+            throttle_d_corr = throttle_kd * throttle_error_slope
+
+            throttle_pid_corr = int(throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr)
+
         else:
             #print("disarmed")
+            throttle_pid_corr = 0
             flight_control(0, 0, 0, 0, 0)
 
-    sleep(10)
+    sleep(100)
 
 # Troubleshoot
 # No print lines in the drone side

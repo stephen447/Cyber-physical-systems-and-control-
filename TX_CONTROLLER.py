@@ -133,13 +133,13 @@ while True:
     # Throttle
     #print("Analogue pin 2 value:", int(pin2.read_analog()))
     # Increase or decrease throttle
-    throttle=mapping(int(pin2.read_analog()), 0,1023,90,0)
+    throttle=mapping(int(pin2.read_analog()), 0,1023,1023,0)
     # currently the way we have throttle joystick its upside-down
     # try 99, 0 in the above line or
 
     # Map throttle
-    if throttle > 90: throttle = 90
-    if throttle < 0 : throttle = 0
+    #if throttle > 90: throttle = 90
+    #if throttle < 0 : throttle = 0
     print("throttle is:", throttle)
     #display.scroll(throttle)
 

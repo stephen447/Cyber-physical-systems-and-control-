@@ -50,7 +50,8 @@ buzzer_id = 6
 # Variables for throttle PID control
 t2 = 0
 t1 = 0
-throttle_target = 500
+dt = 0
+throttle_target = 700
 throttle = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -60,10 +61,9 @@ throttle_error_area = 0
 throttle_p_corr = 0
 throttle_d_corr = 0
 throttle_i_corr = 0
-throttle_kp = 0.5
-throttle_ki = 0.0004
-throttle_kd = 10
-
+throttle_kp = 0.1
+throttle_ki = 0.0005
+throttle_kd = 20
 throttle_pid_corr = 0
 
 """
@@ -239,33 +239,47 @@ while True:
 
         if arm == 1:
             #print("throttle_pid_corr", throttle_pid_corr)
-            flight_control(0, arm, 0, throttle_pid_corr, 0)
+            #print((throttle_i_corr,throttle_d_corr,throttle_pid_corr))
+            flight_control(pitch, arm, roll, throttle_pid_corr, 0)
             #flight_control(0, arm, 0, throttle, 0)
 
+            """
             t1 = t2
             t2 = utime.ticks_ms()
             dt = t2 - t1
+            """
+            # need to figure out how to find dt properly. Following value is an estimate
+            # 100 for sleep and 5 for rest of program execution
+            dt = 105
 
             throttle_old_error = throttle_new_error
             throttle_new_error = throttle_target - throttle_pid_corr
 
             #Proportional
             throttle_p_corr = throttle_kp * throttle_new_error
+            #print("throttle_p_corr", throttle_p_corr)
 
             #Integral
-            throttle_error_area = throttle_error_area + dt * throttle_new_error
+            #print("dt", dt)
+            #print("ki", throttle_ki)
+            # following value is too high at the start
+            throttle_error_area = (dt * throttle_new_error)
+            #print("err_area", throttle_error_area)
             throttle_i_corr = throttle_ki * throttle_error_area
+            #print("throttle_i_corr", throttle_i_corr)
 
             #Differential
             throttle_error_change = throttle_new_error - throttle_old_error
             throttle_error_slope = throttle_error_change / dt
             throttle_d_corr = throttle_kd * throttle_error_slope
+            #print("throttle_d_corr", throttle_d_corr)
 
             throttle_pid_corr = int(throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr)
 
         else:
             #print("disarmed")
             throttle_pid_corr = 0
+            throttle_error_data = 0
             flight_control(0, 0, 0, 0, 0)
 
     sleep(100)

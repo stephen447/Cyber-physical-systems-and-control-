@@ -146,16 +146,16 @@ while True:
 
     # Roll
     #roll=mapping(accelerometer.get_x(),-1024,1024,-20,20)
-    roll=-mapping(int(pin0.read_analog()),0,1023,-20,20)
-    if roll>20: roll=20
-    if roll<-20: roll=-20
+    roll=-mapping(int(pin0.read_analog()),0,1023,-90,90)
+    if roll>90: roll=90
+    if roll<-90: roll=-90
     #print("roll ", roll)
 
 
     # Pitch
-    pitch=-mapping(int(pin1.read_analog()),0,1023,-20,20)
-    if pitch>20: pitch=20
-    if pitch<-20: pitch=-20
+    pitch=-mapping(int(pin1.read_analog()),0,1023,-90,90)
+    if pitch>90: pitch=90
+    if pitch<-90: pitch=-90
     #print("pitch ", pitch)
 
     yaw = 0
@@ -164,6 +164,7 @@ while True:
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
         arm = 0
         throttle = 0
+        # first string is blank, just to be on the same side, data from second string
         command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
         display.set_pixel(0, 0, 9)
         display.set_pixel(1, 1, 0)
@@ -187,6 +188,7 @@ while True:
     4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
     6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)
         decreasing throttle to low value while testing, etc.
+    7) More convenient to map roll and pitch between -90 and 90.
 
     """
 

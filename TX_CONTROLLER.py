@@ -133,7 +133,8 @@ while True:
     # Throttle
     #print("Analogue pin 2 value:", int(pin2.read_analog()))
     # Increase or decrease throttle
-    throttle=mapping(int(pin2.read_analog()), 0,1023,1023,0)
+    # throttle=mapping(int(pin2.read_analog()), 0,1023,1023,0)
+    throttle=mapping(int(pin1.read_analog()), 0,1023,700,0)
     # currently the way we have throttle joystick its upside-down
     # try 99, 0 in the above line or
 
@@ -145,15 +146,16 @@ while True:
 
 
     # Roll
-    #roll=mapping(accelerometer.get_x(),-1024,1024,-20,20)
-    roll=-mapping(int(pin0.read_analog()),0,1023,-90,90)
+    roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
+    #roll=-mapping(int(pin0.read_analog()),0,1023,-90,90)
     if roll>90: roll=90
     if roll<-90: roll=-90
     #print("roll ", roll)
 
 
     # Pitch
-    pitch=-mapping(int(pin1.read_analog()),0,1023,-90,90)
+    pitch=-mapping(accelerometer.get_y(),-1024,1024,-90,90)
+    #pitch=-mapping(int(pin1.read_analog()),0,1023,-90,90)
     if pitch>90: pitch=90
     if pitch<-90: pitch=-90
     #print("pitch ", pitch)

@@ -29,18 +29,16 @@ while True:
     counter = 1
     if (a_diff > threshold) or (b_diff > threshold): #If there was a level change
         #print("transition")
-        counter += 1
-        print(counter)
-        a_curr = pin2.read_analog() #Read in signal A
-        b_curr = pin1.read_analog() #Read in signal B
+        
+        
         # if a is high and b is low
-        if a_curr > threshold and b_curr < threshold: # If A rose before B, increase throttle
+        if a_curr > threshold and b_curr < threshold and (a_curr-a_prev>threshold): # If A rose before B, increase throttle
             throttle += 5
             print("increase")
             sleep(20)
 
         # if b is high and a is low
-        if b_curr > threshold and a_curr < threshold: #If B rose before A, decrease throttle
+        if b_curr > threshold and a_curr < threshold and (b_curr-b_prev>threshold):  #If B rose before A, decrease throttle
             throttle -= 5
             print("*")
             sleep(20)
@@ -49,9 +47,7 @@ while True:
         throttle = 100
     if throttle < 0: #Limit min throttle to 0
         throttle = 0
-
+    print("Throttle", throttle)
     #print((a_curr,0,0))
     #print((0,0,throttle))
     #display.scroll(throttle)
-
-

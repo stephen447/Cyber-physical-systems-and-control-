@@ -393,7 +393,7 @@ while True:
         #print((0,0, roll))
 
 
-        command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(1023)+","+str(yaw)
+        command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
         radio.send(command)  # Send command via radio
         #print(command)
 

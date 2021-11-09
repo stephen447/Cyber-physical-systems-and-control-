@@ -35,6 +35,12 @@ def throttle_encoder():
     b_diff = abs(b_curr - b_prev)
 
     if (a_diff > threshold) or (b_diff > threshold): #If there was a level change
+<<<<<<< HEAD
+=======
+        #print("transition")
+        
+        
+>>>>>>> 0b0cfd5f560d29e0bddeb985896bedcb21882502
         # if a is high and b is low
         if a_curr > threshold and b_curr < threshold and (a_curr-a_prev>threshold): # If A rose before B, increase throttle
             throttle += 5
@@ -51,6 +57,7 @@ def throttle_encoder():
         throttle = 100
     if throttle < 0: #Limit min throttle to 0
         throttle = 0
+<<<<<<< HEAD
     #print("Throttle", throttle)
 
 def mapping(value, fromLow, fromHigh, toLow, toHigh):
@@ -67,3 +74,9 @@ while True:
     throttle_encoder()
     print((mapping(throttle,0,100,0,1023),0,0))
     sleep(20)
+=======
+    print("Throttle", throttle)
+    #print((a_curr,0,0))
+    #print((0,0,throttle))
+    #display.scroll(throttle)
+>>>>>>> 0b0cfd5f560d29e0bddeb985896bedcb21882502

@@ -124,6 +124,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
 
     # Filter throttle, pitch and roll
+    '''
     if throttle > 1023:
         throttle = 1023
     if throttle < 0:
@@ -138,6 +139,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
         roll = 90
     if roll < -90:
         roll = -90
+    '''
 
     # Scaling and offsetting
     scaled_pitch = int((scale1 * pitch) + offset1)

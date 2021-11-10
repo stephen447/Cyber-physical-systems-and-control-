@@ -37,11 +37,11 @@ battery_msg = ""
 # use analog pins for now
 # pin4 and pin10 are connected to leds. To use them as analog pins
 # first turn off the display
-encoder_pinA = pin4
-encoder_pinB = pin10
+encoder_pinB = pin4
+encoder_pinA = pin10
 display.off()
-pitch_pin = pin0
-roll_pin = pin1
+pitch_pin = pin1
+roll_pin = pin2
 
 
 # PID
@@ -52,14 +52,11 @@ dt = 15
 
 
 # Variables for throt0tle PID control
-throttle_target = 1020
+throttle_target = 600
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
 throttle_error_area = 0
-throttle_kp = 0.1 # these values seem reasonable
-throttle_ki = 0.00001
-throttle_kd = 2 # usually controllers use PI system so stick with PI for now
 throttle_pid_corr = 0
 
 
@@ -81,9 +78,9 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
+midpoint = 508
 
 
-roll_kd = 0
 roll_pid_corr = 0
 
 roll_calibration = 6 # initially on a flat surface, drone roll is reading -6
@@ -92,50 +89,51 @@ roll_calibration = 6 # initially on a flat surface, drone roll is reading -6
 """************************************************************
 
 ************************************************************"""
-def throttle_pid_control(throttle):
-    # throttle here is the current throttle, we can obtain this by
-    # taking geometric properties of the encoder
+throttle_kp = 0.01 # these values seem reasonable
+throttle_ki = 0.000001 #0.000001 #0.00001
+# kd not so relevant for throttle
+throttle_kd = 2 #usually controllers use PI system so stick with PI for now
+def throttle_pid_control():
+    # Height of the drone can be obatined using geometric properties of encoder
+
     global throttle_new_error, throttle_pid_corr, throttle_error_area
-    """
-    t1 = t2
-    t2 = utime.tick_ms()
-    dt = t2 - t1
-    """
+
+    # throttle_current = Pid value seems to make logical sense. when we obtain
+    # a pid value, this is the value that will be written to uart, so this is
+    # current throttle value, gives more stability as well, use throttle target
+    # for height property
+    throttle_current = throttle_pid_corr
+    #throttle_current = throttle_encoder()
 
     throttle_old_error = throttle_new_error
-    # new error = target - current, however its not possible to measure
-    # current for throttle, so use throttle_pid_corr
-    throttle_new_error = throttle_target - throttle
+    throttle_new_error = throttle_target - throttle_current
 
     # Proportional
     throttle_p_corr = throttle_kp * throttle_new_error
 
     # Integral
     # following value is too high at the start
-    # throttle_error_area = throttle_error_area + (dt * throttle_new_error)
     throttle_error_area = throttle_error_area + (dt * throttle_new_error)
     # print("err_area", throttle_error_area)
     throttle_i_corr = throttle_ki * throttle_error_area
-    # print("throttle_i_corr", throttle_i_corr)
 
     # Differential
     throttle_error_change = throttle_new_error - throttle_old_error
     throttle_error_slope = throttle_error_change / dt
     throttle_d_corr = throttle_kd * throttle_error_slope
-    # print("throttle_d_corr", throttle_d_corr)
 
-    throttle_pid_corr = int(throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr)
-    #print(throttle_p_corr)
-    #print(throttle_i_corr)
-    #print(throttle_d_corr)
-    #print((0,throttle_target,throttle_pid_corr))
+    throttle_pid_corr = throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr
+    #print("throttle_p_corr", throttle_p_corr)
+    #print("throttle_i_corr", throttle_i_corr)
+    #print("throttle_d_corr", throttle_d_corr)
+    print((throttle_target,throttle_current,throttle_pid_corr))
     return throttle_pid_corr
 
 
 """************************************************************
 
 ************************************************************"""
-def pitch_pid_control(pitch):
+def pitch_pid_control():
     #print("inside pitch pid")
     global pitch_new_error, pitch_pid_corr, pitch_error_area, pitch_current
 
@@ -145,7 +143,8 @@ def pitch_pid_control(pitch):
     # this might improve control with transmitter
 
     pitch_target = 0
-    pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
+    #pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
+    pitch_current=-mapping(int(pitch_pin.read_analog()),0,1023,-90,90)
 
     pitch_old_error = pitch_new_error
 
@@ -177,10 +176,10 @@ def pitch_pid_control(pitch):
 """************************************************************
 
 ************************************************************"""
-def roll_pid_control(roll):
-    roll_kp = 0.2       # (0.2 - 0.3)
-    roll_ki = 0.002 # somewhere around 0.002
-    roll_kd = 50
+def roll_pid_control():
+    roll_kp = 0.1       # (0.2 - 0.3)
+    roll_ki = 0.0001 # somewhere around 0.002
+    roll_kd = 10
     #print("inside roll pid")
     global roll_new_error, roll_pid_corr, roll_error_area, roll_current
 
@@ -189,8 +188,16 @@ def roll_pid_control(roll):
     # try changing roll_target to roll input parameter,
     # this might improve control with transmitter
 
-    roll_target = 0
-    roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + roll_calibration
+    roll_target = midpoint
+    #roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + roll_calibration
+    #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
+
+    roll_current=int(roll_pin.read_analog())
+    pitch_current = int(1023-pitch_pin.read_analog())
+    #print(roll_current)
+    #print("p", pitch_current)
+
+    #print(int(roll_pin.read_analog()))
     #print("roll_curr", roll_current)
     roll_old_error = roll_new_error
 
@@ -199,6 +206,7 @@ def roll_pid_control(roll):
 
     # Proportional
     roll_p_corr = roll_kp * roll_new_error
+    #print(roll_p_corr)
     #print("roll_p_corr", roll_p_corr)
     # Integral
     # following value is too high at the start
@@ -213,9 +221,13 @@ def roll_pid_control(roll):
     roll_d_corr = roll_kd * roll_error_slope
     #print("roll_d_corr", roll_d_corr)
 
+    #print("p_corr",roll_p_corr)
+    #print("i_corr",roll_i_corr)
+    #print("d_corr", roll_d_corr)
     roll_pid_corr = int( roll_pid_corr + roll_p_corr + roll_i_corr + roll_d_corr)
     #print("roll_pid_corr", roll_pid_corr)
     #print((0,roll_current,roll_pid_corr))
+    #print((roll_current, roll_pid_corr, roll_target))
     return roll_pid_corr
 
 
@@ -267,32 +279,40 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
         return math.floor(exact)
 
 
+throttle_encoder_val = 0
+a_prev = 0
 def throttle_encoder():
-    global throttle
+    global throttle_encoder_val, a_prev
     threshold = 500
-    a_prev = encoder_pinA.read_analog() #Read in signal A
-    b_prev = encoder_pinB.read_analog() #Read in signal B
-
-    sleep(10)
-
     a_curr = encoder_pinA.read_analog() #Read in signal A
-    b_curr = encoder_pinB.read_analog() #Read in signal B
+    b_curr = encoder_pinB.read_analog()
 
-    a_diff = abs(a_curr - a_prev)
-    b_diff = abs(b_curr - b_prev)
+    if (a_curr >threshold):
+        a_curr = 1
+    else:
+        a_curr = 0
+    if b_curr > threshold:
+        b_curr = 1
+    else:
+        b_curr = 0
 
-    if (a_diff > threshold) or (b_diff > threshold): #If there was a level change
-        # if a is high and b is low
-        if a_curr > threshold and b_curr < threshold and (a_curr-a_prev>threshold): # If A rose before B, increase throttle
-            throttle += 5
+    if (a_curr != a_prev):
+        if (b_curr != a_curr):
+            throttle_encoder_val += 1
             #print("increase")
-            #sleep(10)
+        else:
+            throttle_encoder_val -= 1
+            #print("decrease")
+    a_prev = a_curr
 
-        # if b is high and a is low
-        if b_curr > threshold and a_curr < threshold and (b_curr-b_prev>threshold):  #If B rose before A, decrease throttle
-            throttle -= 5
-            #print("*")
-            #sleep(10)
+    if throttle_encoder_val > 100:
+        throttle_encoder_val = 100
+    elif throttle_encoder_val < 0:
+        throttle_encoder_val = 0
+
+    temp = mapping(throttle_encoder_val, 0, 100, 0, 1023)
+    #print((throttle_encoder_val, 0, 0))
+    return temp
 
 
 while True:
@@ -364,8 +384,6 @@ while True:
     #throttle=mapping(throttle, 0,100,0,1023)
     if arm == 1:
 
-        throttle_encoder()
-
         # Roll
         roll = 0
         #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
@@ -386,13 +404,17 @@ while True:
         yaw = 0
 
         # PID CONTROL
-        throttle = throttle_pid_control(throttle)
-        print((throttle,0,0))
-        #pitch = pitch_pid_control(pitch)
-        #roll = roll_pid_control(roll)
+        throttle = int(throttle_pid_control())
+        #print((throttle,0,0))
+        #pitch = pitch_pid_control()
+        #roll = roll_pid_control()
         #print((0,0, roll))
 
 
+        if throttle > 1023:
+            throttle = 1023
+        if throttle < 0:
+            throttle = 0
         command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
         radio.send(command)  # Send command via radio
         #print(command)

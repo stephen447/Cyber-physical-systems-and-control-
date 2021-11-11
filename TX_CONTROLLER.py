@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 650
+throttle_target = 800
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -141,6 +141,7 @@ def pitch_pid_control():
     # try changing pitch_target to pitch input parameter,
     # this might improve control with transmitter
 
+# + pitch_pid_corr seems to work
     pitch_current = mapping(1023-pitch_pin.read_analog(), 0, 1023, -15, 15) + pitch_pid_corr
     #print("pitch_curr", pitch_current)
 

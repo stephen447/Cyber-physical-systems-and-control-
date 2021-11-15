@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 1000
+throttle_target = 800
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -65,7 +65,7 @@ throttle_pid_corr = 0
 """************************************************************
 
 ************************************************************"""
-throttle_kp = 0.008 # these values seem reasonable
+throttle_kp = 0.006 # these values seem reasonable
 throttle_ki = 0.000001 #0.000001 #0.00001
 # kd not so relevant for throttle
 throttle_kd = 5 #usually controllers use PI system so stick with PI for now
@@ -78,7 +78,9 @@ def throttle_pid_control():
     # a pid value, this is the value that will be written to uart, so this is
     # current throttle value, gives more stability as well, use throttle target
     # for height property
+
     throttle_current = throttle_pid_corr
+
     #throttle_current = throttle_encoder()
 
     throttle_old_error = throttle_new_error

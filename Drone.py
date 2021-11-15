@@ -121,8 +121,8 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
-roll_kp = 0.05       # (0.2 - 0.3)
-roll_ki = 0.00001 #0.00001# somewhere around 0.002
+roll_kp = 0.0001       # (0.2 - 0.3)
+roll_ki = 0.000001 #0.00001# somewhere around 0.002
 roll_kd = 0 #10 #4 #10
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
 roll_pid_corr=0
@@ -130,7 +130,7 @@ def roll_pid_control():
     #print("inside roll pid")
     global roll_new_error, roll_pid_corr, roll_error_area, roll_current, roll_p_corr
 
-    roll_current = mapping(accelerometer.get_x(),-1024,1024,-20,20) + roll_pid_corr
+    roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90)
     #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
 
     #roll_current= mapping(1023-roll_pin.read_analog(), 0, 1023, -15, 15) + roll_pid_corr
@@ -166,8 +166,8 @@ def roll_pid_control():
 """************************************************************
 
 ************************************************************"""
-pitch_kp = 0.05
-pitch_ki = 0.00001
+pitch_kp = 0.0001
+pitch_ki = 0.000001
 pitch_kd = 5
 pitch_target = 0
 pitch_pid_corr = 0
@@ -181,7 +181,7 @@ def pitch_pid_control():
     # this might improve control with transmitter
 
 # + pitch_pid_corr seems to work
-    pitch_current = mapping(accelerometer.get_y(),-1024,1024,-20,20) + pitch_pid_corr
+    pitch_current = mapping(accelerometer.get_y(),-1024,1024,-90,90)
     #print("pitch_curr", pitch_current)
 
     #pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
@@ -238,21 +238,21 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
 
     # Filter throttle, pitch and roll
-    '''
+
     if throttle > 1023:
         throttle = 1023
     if throttle < 0:
         throttle = 0
-    '''
-    if pitch > 20:
-        pitch = 20
-    if pitch < -20:
-        pitch = -20
 
-    if roll > 20:
-        roll = 20
-    if roll < -20:
-        roll = -20
+    if pitch > 90:
+        pitch = 90
+    if pitch < -90:
+        pitch = -90
+
+    if roll > 90:
+        roll = 90
+    if roll < -90:
+        roll = -90
 
 
     # Scaling and offsetting

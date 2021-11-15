@@ -230,7 +230,7 @@ while True:
     else:
         throttle = 0
         throttle_error_data = 0
-        flight_control(0, 0, 0, 0, 0)
+        flight_control(0, 0,0, 0, 0)
 
     sleep(10)
 

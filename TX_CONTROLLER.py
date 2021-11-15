@@ -40,8 +40,8 @@ battery_msg = ""
 encoder_pinB = pin4
 encoder_pinA = pin10
 display.off()
-pitch_pin = pin1
-roll_pin = pin2
+pitch_pin = pin2
+roll_pin = pin1
 
 
 # PID
@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 800
+throttle_target = 750
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -82,7 +82,7 @@ roll_error_area = 0
 """************************************************************
 
 ************************************************************"""
-throttle_kp = 0.008 # these values seem reasonable
+throttle_kp = 0.006 # these values seem reasonable
 throttle_ki = 0.000001 #0.000001 #0.00001
 # kd not so relevant for throttle
 throttle_kd = 5 #usually controllers use PI system so stick with PI for now
@@ -119,7 +119,7 @@ def throttle_pid_control():
     #print("throttle_p_corr", throttle_p_corr)
     #print("throttle_i_corr", throttle_i_corr)
     #print("throttle_d_corr", throttle_d_corr)
-    print((throttle_target,throttle_current,throttle_pid_corr))
+    #print((throttle_target,throttle_current,throttle_pid_corr))
     #print("throttle", throttle_pid_corr)
     return throttle_pid_corr
 
@@ -127,8 +127,8 @@ def throttle_pid_control():
 """************************************************************
 
 ************************************************************"""
-pitch_kp = 0.05
-pitch_ki = 0.00001
+pitch_kp = 0.0001
+pitch_ki = 0.000001
 pitch_kd = 5
 pitch_target = 0
 pitch_pid_corr = 0
@@ -142,8 +142,11 @@ def pitch_pid_control():
     # this might improve control with transmitter
 
 # + pitch_pid_corr seems to work
-    pitch_current = mapping(1023-pitch_pin.read_analog(), 0, 1023, -15, 15) + pitch_pid_corr
+    pitch_current = mapping(pitch_pin.read_analog(), 0, 1023, -90, 90)
     #print("pitch_curr", pitch_current)
+
+    #print("pitch", pitch_pin.read_analog())
+    #print("roll", roll_pin.read_analog())
 
     #pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
     #pitch_current=-mapping(int(pitch_pin.read_analog()),0,1023,-90,90)
@@ -178,9 +181,9 @@ def pitch_pid_control():
 """************************************************************
 
 ************************************************************"""
-roll_kp = 0.05       # (0.2 - 0.3)
-roll_ki = 0.00001 #0.00001# somewhere around 0.002
-roll_kd = 5 #10 #4 #10
+roll_kp = 0.0001       # (0.2 - 0.3)
+roll_ki = 0.000001 #0.00001# somewhere around 0.002
+roll_kd = 0#5
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
 roll_pid_corr=0
 def roll_pid_control():
@@ -190,7 +193,7 @@ def roll_pid_control():
     #roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + roll_calibration
     #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
 
-    roll_current= mapping(1023-roll_pin.read_analog(), 0, 1023, -15, 15) + roll_pid_corr
+    roll_current= mapping(roll_pin.read_analog(), 0, 1023, -90, 90)
     #print("roll_curr", roll_current)
     #roll_current = roll_pid_corr
 
@@ -216,7 +219,7 @@ def roll_pid_control():
     #print("p_corr",roll_p_corr)
     #print("i_corr",roll_i_corr)
     #print("d_corr", roll_d_corr)
-    #print((roll_target, roll_current, roll_pid_corr))
+    print((roll_target, roll_current, roll_pid_corr))
     return roll_pid_corr
 
 
@@ -305,6 +308,9 @@ def throttle_encoder():
 
 
 while True:
+    print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
+    print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
+
     battery_msg = radio.receive()
     #print(battery_msg)
     #print(type(battery))
@@ -347,6 +353,9 @@ while True:
         # if button a and b is pressed - arm / disarm depending on current state
         if arm == 0:
             arm = 1
+            throttle = 0
+            roll = 0
+            pitch = 0
             #print("arming")
             # Throttle needs to be 0 for arming
             command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
@@ -357,6 +366,8 @@ while True:
         else:
             #print("Dis-armed")
             throttle = 0
+            roll = 0
+            pitch = 0
             arm = 0
             command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
             radio.send(command)
@@ -375,23 +386,25 @@ while True:
 
         # PID CONTROL
         throttle = int(throttle_pid_control())
-        pitch = int(pitch_pid_control()) #mapping(int(pitch_pid_control()),0,1023, -15,15)
+        pitch = 0
+        roll = 0
+        pitch = int(pitch_pid_control())
+        roll = int(roll_pid_control())
         # -15 to 15 seems more stable
-        roll = int(roll_pid_control())# mapping(,0,1023, -15,15)
         #print((0,0, roll))
 
         if throttle > 1023:
             throttle = 1023
         if throttle < 0:
             throttle = 0
-        if roll > 15:
-            roll = 15
-        if roll < -15:
-            roll = -15
-        if pitch > 15:
-            pitch = 15
-        if pitch < -15:
-            pitch = 15
+        if roll > 90:
+            roll = 90
+        if roll < -90:
+            roll = -90
+        if pitch > 90:
+            pitch = 90
+        if pitch < -90:
+            pitch = 90
 
         command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio

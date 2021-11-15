@@ -80,7 +80,6 @@ roll_error_area = 0
 #roll_calibration = 6 # initially on a flat surface, drone roll is reading -6
 
 """************************************************************
-
 ************************************************************"""
 throttle_kp = 0.006 # these values seem reasonable
 throttle_ki = 0.000001 #0.000001 #0.00001
@@ -95,8 +94,9 @@ def throttle_pid_control():
     # a pid value, this is the value that will be written to uart, so this is
     # current throttle value, gives more stability as well, use throttle target
     # for height property
-    throttle_current = throttle_pid_corr
-    #throttle_current = throttle_encoder()
+
+    #throttle_current = throttle_pid_corr
+    throttle_current = throttle_encoder()
 
     throttle_old_error = throttle_new_error
     throttle_new_error = throttle_target - throttle_current
@@ -125,7 +125,6 @@ def throttle_pid_control():
 
 
 """************************************************************
-
 ************************************************************"""
 pitch_kp = 0.0001
 pitch_ki = 0.000001
@@ -179,7 +178,6 @@ def pitch_pid_control():
 
 
 """************************************************************
-
 ************************************************************"""
 roll_kp = 0.0001       # (0.2 - 0.3)
 roll_ki = 0.000001 #0.00001# somewhere around 0.002
@@ -304,12 +302,13 @@ def throttle_encoder():
 
     temp = mapping(throttle_encoder_val, 0, 100, 0, 1023)
     #print((throttle_encoder_val, 0, 0))
+    print(temp)
     return temp
 
 
 while True:
-    print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
-    print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
+    #print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
+    #print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
 
     battery_msg = radio.receive()
     #print(battery_msg)
@@ -424,20 +423,10 @@ while True:
     6) Don't use display.scroll function in transmitter
     7) Throttle should be 0 for arming
     8) Wait few secs to arm, disarm, etc.
-
     4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
     6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)
         decreasing throttle to low value while testing, etc.
     7) More convenient to map roll and pitch between -90 and 90.
-
-
     8) Some of the pins are connected to LEDs. To access the pins display must be off.
     display.off()
-
-
-
-
-
     """
-
-

@@ -1,0 +1,53 @@
+from microbit import *  # NEEDS TO BE INCLUDED IN ALL CODE WRITTEN FOR MICROBIT
+import micropython
+import math
+
+threshold = 500
+ticks = 0
+target_height = 5
+encoder_pinA = pin4
+encoder_pinB = pin10
+display.off()
+throttle = 0
+while True:
+    
+    a_prev = encoder_pinA.read_analog() #Read in signal A
+    b_prev = encoder_pinB.read_analog() #Read in signal B
+    
+    sleep(10)
+    
+    a_curr = encoder_pinA.read_analog() #Read in signal A
+    b_curr = encoder_pinB.read_analog() #Read in signal B
+    
+    a_diff = abs(a_curr - a_prev)
+    b_diff = abs(b_curr - b_prev)
+    if (a_diff > threshold) or (b_diff > threshold): # If there was a level change
+            #print("transition")
+            # if a is high and b is low
+            if a_curr > threshold and b_curr < threshold and (a_curr-a_prev>threshold): # If A rose before B, increase throttle
+                ticks = ticks-1
+                print("increase")
+
+    
+            # if b is high and a is low
+            if b_curr > threshold and a_curr < threshold and (b_curr-b_prev>threshold):  #If B rose before A, decrease throttle
+                ticks = ticks+1
+                print("decrease")
+                
+    print("No. of ticks", ticks)
+    
+    height = ticks/24*7
+    if( target_height>height):
+        throttle = throttle+1
+    if( target_height<height):
+        throttle = throttle-1
+    print("throttle is:", throttle)
+    print("current height", height)
+    print("target height", target_height)
+    
+    if throttle > 100: #Limit max throttle to 100
+        throttle = 100
+    if throttle < 0: #Limit min throttle to 0
+        throttle = 0
+sleep(3000)
+    

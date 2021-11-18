@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 750
+throttle_target = 1000
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -307,8 +307,8 @@ def throttle_encoder():
 
 
 while True:
-    #print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
-    #print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
+    print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
+    print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
 
     battery_msg = radio.receive()
     #print(battery_msg)

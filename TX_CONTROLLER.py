@@ -264,12 +264,12 @@ while True:
 
         # PID CONTROL
         throttle = int(throttle_pid_control())
-        #pitch = int(pitch_pid_control()) #mapping(int(pitch_pid_control()),0,1023, -15,15)
+        pitch = int(pitch_pid_control()) #mapping(int(pitch_pid_control()),0,1023, -15,15)
         # -15 to 15 seems more stable
-        #roll = int(roll_pid_control())# mapping(,0,1023, -15,15)
+        roll = int(roll_pid_control())# mapping(,0,1023, -15,15)
         #print((0,0, roll))
-        roll = 0
-        pitch = 0
+        #roll = 0
+        #pitch = 0
 
         if throttle > 1023:
             throttle = 1023

@@ -45,6 +45,7 @@ scale2 = 5
 offset1 = 512
 offset2 = 521  # for roll
 
+
 # channel ID, Each need
 roll_id = 0
 pitch_id = 1
@@ -121,16 +122,17 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
-roll_kp = 0.0001       # (0.2 - 0.3)
-roll_ki = 0.000001 #0.00001# somewhere around 0.002
-roll_kd = 0 #10 #4 #10
+roll_kp = 0.1       # (0.2 - 0.3)
+# if drifting is observed, increase i
+roll_ki = 0.00001 #0.00001# somewhere around 0.002
+roll_kd = 2 #10 #4 #10
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
 roll_pid_corr=0
 def roll_pid_control():
     #print("inside roll pid")
     global roll_new_error, roll_pid_corr, roll_error_area, roll_current, roll_p_corr
 
-    roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90)
+    roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + 5
     #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
 
     #roll_current= mapping(1023-roll_pin.read_analog(), 0, 1023, -15, 15) + roll_pid_corr
@@ -155,20 +157,21 @@ def roll_pid_control():
     roll_d_corr = roll_kd * roll_error_slope
 
     roll_pid_corr =  roll_pid_corr + roll_p_corr + roll_i_corr + roll_d_corr
+
     #print(roll_pid_corr)
     #print("p_corr",roll_p_corr)
     #print("i_corr",roll_i_corr)
     #print("d_corr", roll_d_corr)
-    #print((roll_target, roll_current, roll_pid_corr))
+    print((roll_target, roll_current, roll_pid_corr))
     return roll_pid_corr
 
 
 """************************************************************
 
 ************************************************************"""
-pitch_kp = 0.0001
-pitch_ki = 0.000001
-pitch_kd = 5
+pitch_kp = 0.1
+pitch_ki = 0.00001
+pitch_kd = 2
 pitch_target = 0
 pitch_pid_corr = 0
 def pitch_pid_control():
@@ -180,8 +183,8 @@ def pitch_pid_control():
     # try changing pitch_target to pitch input parameter,
     # this might improve control with transmitter
 
-# + pitch_pid_corr seems to work
-    pitch_current = mapping(accelerometer.get_y(),-1024,1024,-90,90)
+    # + pitch_pid_corr seems to work
+    pitch_current = -mapping(accelerometer.get_y(),-1024,1024,-90,90)+7
     #print("pitch_curr", pitch_current)
 
     #pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
@@ -225,10 +228,11 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
-        roll = roll_pid_control() - 2
+        roll = roll_pid_control()
         pitch = pitch_pid_control()
         display.set_pixel(1, 1, 9)
         display.set_pixel(0, 0, 0)
+
     elif arm == 0:
         scaled_arm = 0
         display.set_pixel(0, 0, 9)
@@ -333,7 +337,6 @@ while True:
         roll = int(parsed_incoming[3])
         throttle = int(parsed_incoming[4])
         yaw = int(parsed_incoming[5])
-
 
     if arm == 1:
         # print("throttle_pid_corr", throttle_pid_corr)

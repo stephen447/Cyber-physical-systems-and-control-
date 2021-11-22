@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 800
+throttle_target = 1000
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -66,9 +66,9 @@ throttle_pid_corr = 0
 
 ************************************************************"""
 throttle_kp = 0.006 # these values seem reasonable
-throttle_ki = 0.000001 #0.000001 #0.00001
+throttle_ki = 0#0.000001 #0.000001 #0.00001
 # kd not so relevant for throttle
-throttle_kd = 5 #usually controllers use PI system so stick with PI for now
+throttle_kd = 0#5 #usually controllers use PI system so stick with PI for now
 def throttle_pid_control():
     # Height of the drone can be obatined using geometric properties of encoder
 
@@ -104,7 +104,7 @@ def throttle_pid_control():
     #print("throttle_p_corr", throttle_p_corr)
     #print("throttle_i_corr", throttle_i_corr)
     #print("throttle_d_corr", throttle_d_corr)
-    #print((throttle_target,throttle_current,throttle_pid_corr))
+    print((throttle_target,throttle_current,throttle_pid_corr))
     #print("throttle", throttle_pid_corr)
     return throttle_pid_corr
 
@@ -264,25 +264,12 @@ while True:
 
         # PID CONTROL
         throttle = int(throttle_pid_control())
-        pitch = int(pitch_pid_control()) #mapping(int(pitch_pid_control()),0,1023, -15,15)
+        #pitch = int(pitch_pid_control()) #mapping(int(pitch_pid_control()),0,1023, -15,15)
         # -15 to 15 seems more stable
-        roll = int(roll_pid_control())# mapping(,0,1023, -15,15)
+        #roll = int(roll_pid_control())# mapping(,0,1023, -15,15)
         #print((0,0, roll))
-        #roll = 0
-        #pitch = 0
-
-        if throttle > 1023:
-            throttle = 1023
-        if throttle < 0:
-            throttle = 0
-        if roll > 15:
-            roll = 15
-        if roll < -15:
-            roll = -15
-        if pitch > 15:
-            pitch = 15
-        if pitch < -15:
-            pitch = 15
+        roll = 0
+        pitch = 0
 
         command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio

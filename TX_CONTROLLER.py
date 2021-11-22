@@ -4,7 +4,7 @@ import micropython
 import math
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel = 77)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+radio.config(channel = 78)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 # channel can be 0-83
 micropython.kbd_intr(-1)
@@ -63,7 +63,6 @@ throttle_pid_corr = 0
 #roll_calibration = 6 # initially on a flat surface, drone roll is reading -6
 
 """************************************************************
-
 ************************************************************"""
 throttle_kp = 0.006 # these values seem reasonable
 throttle_ki = 0#0.000001 #0.000001 #0.00001
@@ -251,6 +250,9 @@ while True:
             radio.send(command)
             display.set_pixel(1, 1, 0)
             display.set_pixel(0, 0, 9)
+            throttle_new_error = 0
+            throttle_pid_corr = 0
+            throttle_error_area = 0
             sleep(500) # to prevent switch bouncing effect
 
 
@@ -289,20 +291,10 @@ while True:
     6) Don't use display.scroll function in transmitter
     7) Throttle should be 0 for arming
     8) Wait few secs to arm, disarm, etc.
-
     4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
     6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)
         decreasing throttle to low value while testing, etc.
     7) More convenient to map roll and pitch between -90 and 90.
-
-
     8) Some of the pins are connected to LEDs. To access the pins display must be off.
     display.off()
-
-
-
-
-
     """
-
-

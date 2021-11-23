@@ -40,8 +40,8 @@ battery_msg = ""
 encoder_pinB = pin4
 encoder_pinA = pin10
 display.off()
-pitch_pin = pin2
-roll_pin = pin1
+pitch_pin = pin1
+roll_pin = pin2
 
 
 # PID
@@ -52,7 +52,7 @@ dt = 20
 
 
 # Variables for throt0tle PID control
-throttle_target = 1000
+throttle_target = 650
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -81,10 +81,10 @@ roll_error_area = 0
 
 """************************************************************
 ************************************************************"""
-throttle_kp = 0.006 # these values seem reasonable
-throttle_ki = 0.000001 #0.000001 #0.00001
+throttle_kp = 0.01 # these values seem reasonable
+throttle_ki = 0#0.000001 #0.000001 #0.00001
 # kd not so relevant for throttle
-throttle_kd = 5 #usually controllers use PI system so stick with PI for now
+throttle_kd = 0 #usually controllers use PI system so stick with PI for now
 def throttle_pid_control():
     # Height of the drone can be obatined using geometric properties of encoder
 
@@ -95,8 +95,8 @@ def throttle_pid_control():
     # current throttle value, gives more stability as well, use throttle target
     # for height property
 
-    #throttle_current = throttle_pid_corr
-    throttle_current = throttle_encoder()
+    throttle_current = throttle_pid_corr
+    #throttle_current = throttle_encoder()
 
     throttle_old_error = throttle_new_error
     throttle_new_error = throttle_target - throttle_current
@@ -126,21 +126,20 @@ def throttle_pid_control():
 
 """************************************************************
 ************************************************************"""
-pitch_kp = 0.0001
-pitch_ki = 0.000001
-pitch_kd = 5
+pitch_kp = 0.06
+pitch_ki = 0
+pitch_kd = 0
 pitch_target = 0
 pitch_pid_corr = 0
 def pitch_pid_control():
     #print("inside pitch pid")
-    global pitch_new_error, pitch_pid_corr, pitch_error_area, pitch_current
+    global pitch_new_error, pitch_pid_corr, pitch_error_area
 
     # to make the drone hover our pitch target is 0
     # and current pitch = drone's accelerometer
     # try changing pitch_target to pitch input parameter,
     # this might improve control with transmitter
 
-# + pitch_pid_corr seems to work
     pitch_current = mapping(pitch_pin.read_analog(), 0, 1023, -90, 90)
     #print("pitch_curr", pitch_current)
 
@@ -171,7 +170,7 @@ def pitch_pid_control():
     pitch_d_corr = pitch_kd * pitch_error_slope
     # print("pitch_d_corr", pitch_d_corr)
 
-    pitch_pid_corr = pitch_pid_corr + pitch_p_corr + pitch_i_corr + pitch_d_corr
+    pitch_pid_corr = pitch_p_corr + pitch_i_corr + pitch_d_corr
     #print(pitch_pid_corr)
     #print((pitch_target, pitch_current ,pitch_pid_corr))
     return pitch_pid_corr
@@ -179,19 +178,19 @@ def pitch_pid_control():
 
 """************************************************************
 ************************************************************"""
-roll_kp = 0.0001       # (0.2 - 0.3)
-roll_ki = 0.000001 #0.00001# somewhere around 0.002
-roll_kd = 0#5
+roll_kp = 0.06      # (0.2 - 0.3)
+roll_ki = 0 #0.00001# somewhere around 0.002
+roll_kd = 0#11
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
 roll_pid_corr=0
 def roll_pid_control():
     #print("inside roll pid")
-    global roll_new_error, roll_pid_corr, roll_error_area, roll_current, roll_p_corr
+    global roll_new_error, roll_pid_corr, roll_error_area
 
     #roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + roll_calibration
     #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
 
-    roll_current= mapping(roll_pin.read_analog(), 0, 1023, -90, 90)
+    roll_current= mapping(roll_pin.read_analog(), 0, 1023, 90, -90)
     #print("roll_curr", roll_current)
     #roll_current = roll_pid_corr
 
@@ -212,7 +211,7 @@ def roll_pid_control():
     roll_error_slope = roll_error_change / dt
     roll_d_corr = roll_kd * roll_error_slope
 
-    roll_pid_corr =  roll_pid_corr + roll_p_corr + roll_i_corr + roll_d_corr
+    roll_pid_corr = roll_p_corr + roll_i_corr + roll_d_corr
     #print(roll_pid_corr)
     #print("p_corr",roll_p_corr)
     #print("i_corr",roll_i_corr)
@@ -307,8 +306,6 @@ def throttle_encoder():
 
 
 while True:
-    print("Roll", mapping(roll_pin.read_analog(), 0, 1023, -90, 90))
-    print("Pitch", mapping(pitch_pin.read_analog(), 0, 1023, -90, 90))
 
     battery_msg = radio.receive()
     #print(battery_msg)
@@ -372,6 +369,15 @@ while True:
             radio.send(command)
             display.set_pixel(1, 1, 0)
             display.set_pixel(0, 0, 9)
+            throttle_new_error = 0
+            throttle_pid_corr = 0
+            throttle_error_area = 0
+            pitch_new_error = 0
+            pitch_pid_corr = 0
+            pitch_error_area = 0
+            roll_error_area = 0
+            roll_new_error = 0
+            roll_pid_corr = 0
             sleep(500) # to prevent switch bouncing effect
 
 
@@ -385,8 +391,6 @@ while True:
 
         # PID CONTROL
         throttle = int(throttle_pid_control())
-        pitch = 0
-        roll = 0
         pitch = int(pitch_pid_control())
         roll = int(roll_pid_control())
         # -15 to 15 seems more stable

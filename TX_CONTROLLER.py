@@ -2,6 +2,7 @@ from microbit import *  # NEEDS TO BE INCLUDED IN ALL CODE WRITTEN FOR MICROBIT
 import radio   # WORTH CHECKING OUT RADIO CLASS IN BBC MICRO DOCS
 import micropython
 import math
+import utime
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
 radio.config(channel = 78)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
@@ -48,11 +49,11 @@ roll_pin = pin2
 # Need to find a way of calculating these values
 t2 = 0
 t1 = 0
-dt = 20
+dt = 0
 
 
 # Variables for throt0tle PID control
-throttle_target = 800
+throttle_target = 700
 throttle_current = 0
 throttle_new_error = 0
 throttle_old_error = 0
@@ -71,12 +72,21 @@ throttle_kd = 0#5 #usually controllers use PI system so stick with PI for now
 def throttle_pid_control():
     # Height of the drone can be obatined using geometric properties of encoder
 
-    global throttle_new_error, throttle_pid_corr, throttle_error_area
+    global throttle_new_error, throttle_pid_corr, throttle_error_area, t1
 
     # throttle_current = Pid value seems to make logical sense. when we obtain
     # a pid value, this is the value that will be written to uart, so this is
     # current throttle value, gives more stability as well, use throttle target
     # for height property
+
+    # Calculate dt
+    t2 = utime.ticks_ms()
+    dt = t2 - t1
+    t1 = t2
+    # reset timer after 2 mins to prevent overflow
+    if (t2 >= 120000):
+        t2 = 0
+        t1 = 0
 
     throttle_current = throttle_pid_corr
 
@@ -253,6 +263,8 @@ while True:
             throttle_new_error = 0
             throttle_pid_corr = 0
             throttle_error_area = 0
+            t1 = 0
+            t2 = 0
             sleep(500) # to prevent switch bouncing effect
 
 
@@ -278,9 +290,6 @@ while True:
         print(command)
 
     sleep(10)
-
-
-
 
 
     """

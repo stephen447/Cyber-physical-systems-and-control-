@@ -120,7 +120,7 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
-roll_kp = 0.1 #0.1       # (0.2 - 0.3)
+roll_kp = 0.2 #0.1       # (0.2 - 0.3)
 # if drifting is observed, increase i
 roll_ki = 0 #0.000001 #0.00001# somewhere around 0.002
 roll_kd = 11 #10 #4 #10
@@ -154,7 +154,7 @@ def roll_pid_control():
     roll_error_slope = roll_error_change / dt
     roll_d_corr = roll_kd * roll_error_slope
 
-    roll_pid_corr =   roll_p_corr + roll_i_corr + roll_d_corr - 4
+    roll_pid_corr =   roll_p_corr + roll_i_corr + roll_d_corr
 
     #print(roll_pid_corr)
     #print("p_corr",roll_p_corr)
@@ -166,7 +166,7 @@ def roll_pid_control():
 
 """************************************************************
 ************************************************************"""
-pitch_kp = 0.1#0.1
+pitch_kp = 0.2#0.1
 pitch_ki = 0 #0.000001
 pitch_kd = 11
 pitch_target = 0
@@ -265,7 +265,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     # Scaling and offsetting
     scaled_pitch = int((scale1 * pitch) + offset1)
-    scaled_roll = int((scale1 * roll) + offset1 + 9.5)
+    scaled_roll = int((scale1 * roll) + offset2)
     scaled_yaw = int((scale2 * yaw) + offset1)
     scaled_flight_mode = int(45 * scale2)
     # scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal

@@ -1,19 +1,19 @@
-# Write your code here :-)
-# Write your code here :-)
-# 21.09.2021
-
-# Aurthor - Keshav Sapkota and Stephen Bryne
+# Keshav Sapkota and Stephen Bryne
 # Drone.py
 
-# Write your code here :-)
-from microbit import *  # NEEDS TO BE INCLUDED IN ALL CODE WRITTEN FOR MICROBIT
-import radio  # WORTH CHECKING OUT RADIO CLASS IN BBC MICRO DOCS
+
+'''****************************************************************************
+*** Import libraries and set global constants
+****************************************************************************'''
+
+from microbit import *
+import radio
 import micropython
 import utime
 import math
 
-radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel=78, address = 0x55555555, group = 9)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+radio.on()
+radio.config(channel=78, address = 0x55555555, group = 9)
 
 # initialize UART communication
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
@@ -120,8 +120,7 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
-roll_kp = 0.08 #0.1       # (0.2 - 0.3)
-# if drifting is observed, increase i
+roll_kp = 0.2 #0.1       # (0.2 - 0.3)
 roll_ki = 0#0.001 #0.000001 #0.00001# somewhere around 0.002
 roll_kd = 0#1#11 #10 #4 #10
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
@@ -172,7 +171,7 @@ def roll_pid_control():
 
 """************************************************************
 ************************************************************"""
-pitch_kp = 0.08#0.08#0.1
+pitch_kp = 0.2#0.08#0.1
 pitch_ki = 0#0.001 #0.000001
 pitch_kd = 0#1#11
 pitch_target = 0
@@ -273,8 +272,6 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     if roll < -90:
         roll = -90
 
-    roll = 0
-    pitch = 0
 
     # Scaling and offsetting
     scaled_pitch = int((scale1 * pitch) + offset1)

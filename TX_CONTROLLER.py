@@ -48,18 +48,18 @@ display.off()
 # Need to find a way of calculating these values
 t2 = 0
 t1 = 0
-dt = 20
+dt = 1
 
 
 '''****************************************************************************
 Throttle PID control
 ****************************************************************************'''
-throttle_target = 1000; throttle_current = 0; throttle_new_error = 0
+throttle_target = 800; throttle_current = 0; throttle_new_error = 0
 throttle_old_error = 0; throttle_error_area = 0; throttle_pid_corr = 0
 
-throttle_kp = 0.06
-throttle_ki = 0.001
-throttle_kd = 1     #kd not so relevant for throttle
+throttle_kp = 0.3
+throttle_ki = 0.1
+throttle_kd = 0     #kd not so relevant for throttle
 
 def throttle_pid_control():
     global throttle_new_error, throttle_pid_corr, throttle_error_area, t1
@@ -74,7 +74,7 @@ def throttle_pid_control():
     throttle_p_corr = throttle_kp * throttle_new_error
 
     # Integral
-    throttle_error_area = throttle_error_area + (dt * throttle_new_error)
+    throttle_error_area += dt * throttle_new_error
     throttle_i_corr = throttle_ki * throttle_error_area
     if throttle_i_corr > 1023:
         throttle_error_area = throttle_error_area - (dt * throttle_new_error)

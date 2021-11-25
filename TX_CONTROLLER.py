@@ -4,8 +4,10 @@ import micropython
 import math
 import utime
 
+# drone
+
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel = 78)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+radio.config(channel = 78, address = 0x55555555, group = 9)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 # channel can be 0-83
 micropython.kbd_intr(-1)
@@ -38,18 +40,19 @@ battery_msg = ""
 # use analog pins for now
 # pin4 and pin10 are connected to leds. To use them as analog pins
 # first turn off the display
-encoder_pinB = pin4
-encoder_pinA = pin10
-display.off()
+encoder_pinB = pin6
+encoder_pinA = pin7
 pitch_pin = pin1
 roll_pin = pin2
+
+display.off()
 
 
 # PID
 # Need to find a way of calculating these values
 t2 = 0
 t1 = 0
-dt = 0
+dt = 20
 
 
 # Variables for throt0tle PID control
@@ -65,10 +68,10 @@ throttle_pid_corr = 0
 
 """************************************************************
 ************************************************************"""
-throttle_kp = 0.06 # these values seem reasonable
+throttle_kp = 0.006 # these values seem reasonable
 throttle_ki = 0#0.000001 #0.000001 #0.00001
 # kd not so relevant for throttle
-throttle_kd = 0#5 #usually controllers use PI system so stick with PI for now
+throttle_kd = 5#5 #usually controllers use PI system so stick with PI for now
 def throttle_pid_control():
     # Height of the drone can be obatined using geometric properties of encoder
 
@@ -79,6 +82,7 @@ def throttle_pid_control():
     # current throttle value, gives more stability as well, use throttle target
     # for height property
 
+    '''
     # Calculate dt
     t2 = utime.ticks_ms()
     dt = t2 - t1
@@ -87,10 +91,12 @@ def throttle_pid_control():
     if (t2 >= 120000):
         t2 = 0
         t1 = 0
+    '''
 
-    throttle_current = throttle_pid_corr
+    #throttle_current = throttle_pid_corr
 
-    #throttle_current = throttle_encoder()
+    throttle_current = throttle_encoder()
+    #print((0,0,throttle_current))
 
     throttle_old_error = throttle_new_error
     throttle_new_error = throttle_target - throttle_current
@@ -166,22 +172,17 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
         return math.floor(exact)
 
 
+
+# Function is fine
+# However, the sensor doesn't work well when rotary speed is high
 throttle_encoder_val = 0
 a_prev = 0
 def throttle_encoder():
     global throttle_encoder_val, a_prev
-    threshold = 500
-    a_curr = encoder_pinA.read_analog() #Read in signal A
-    b_curr = encoder_pinB.read_analog()
+    a_curr = encoder_pinA.read_digital() #Read in signal A
+    b_curr = encoder_pinB.read_digital()
 
-    if (a_curr >threshold):
-        a_curr = 1
-    else:
-        a_curr = 0
-    if b_curr > threshold:
-        b_curr = 1
-    else:
-        b_curr = 0
+    #print((a_curr, 0.50, 0.50))
 
     if (a_curr != a_prev):
         if (b_curr != a_curr):
@@ -285,9 +286,10 @@ while True:
         roll = 0
         pitch = 0
 
+
         command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio
-        print(command)
+        #print(command)
 
     sleep(10)
 

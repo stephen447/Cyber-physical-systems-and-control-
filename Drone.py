@@ -13,7 +13,7 @@ import utime
 import math
 
 radio.on()  # TURNS ON USE OF ANTENNA ON MICROBIT
-radio.config(channel=78)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
+radio.config(channel=78, address = 0x55555555, group = 9)  # A FEW PARAMETERS CAN BE SET BY THE PROGRAMMER
 
 # initialize UART communication
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
@@ -120,17 +120,19 @@ roll_current = 0
 roll_new_error = 0
 roll_old_error = 0
 roll_error_area = 0
-roll_kp = 0.2 #0.1       # (0.2 - 0.3)
+roll_kp = 0.08 #0.1       # (0.2 - 0.3)
 # if drifting is observed, increase i
-roll_ki = 0 #0.000001 #0.00001# somewhere around 0.002
-roll_kd = 11 #10 #4 #10
+roll_ki = 0#0.001 #0.000001 #0.00001# somewhere around 0.002
+roll_kd = 0#1#11 #10 #4 #10
 roll_target = 0 # to make the drone hover our roll target is 512, centre of joystick
 roll_pid_corr=0
+roll_max = 2
+roll_min = -2
 def roll_pid_control():
     #print("inside roll pid")
     global roll_new_error, roll_pid_corr, roll_error_area
 
-    roll_current = mapping(accelerometer.get_x(),-1024,1024,-20,20) + 1
+    roll_current = mapping(accelerometer.get_x(),-1024,1024,-90,90) + 5
     #roll_current=-mapping(int(roll_pin.read_analog()),0,1023,-90,90)
 
     #roll_current= mapping(1023-roll_pin.read_analog(), 0, 1023, -15, 15) + roll_pid_corr
@@ -148,13 +150,17 @@ def roll_pid_control():
     # Integral
     roll_error_area = roll_error_area + (dt * roll_new_error)
     roll_i_corr = roll_ki * roll_error_area
+    if roll_i_corr >= roll_max:
+        roll_i_corr = roll_max
+    elif roll_i_corr <= roll_min:
+        roll_i_corr = roll_min
 
     # Differential
     roll_error_change = roll_new_error - roll_old_error
     roll_error_slope = roll_error_change / dt
     roll_d_corr = roll_kd * roll_error_slope
 
-    roll_pid_corr =   roll_p_corr + roll_i_corr + roll_d_corr
+    roll_pid_corr =   roll_p_corr + roll_i_corr + roll_d_corr - 2
 
     #print(roll_pid_corr)
     #print("p_corr",roll_p_corr)
@@ -166,11 +172,13 @@ def roll_pid_control():
 
 """************************************************************
 ************************************************************"""
-pitch_kp = 0.2#0.1
-pitch_ki = 0 #0.000001
-pitch_kd = 11
+pitch_kp = 0.08#0.08#0.1
+pitch_ki = 0#0.001 #0.000001
+pitch_kd = 0#1#11
 pitch_target = 0
 pitch_pid_corr = 0
+pitch_max = 2
+pitch_min = -2
 def pitch_pid_control():
     #print("inside pitch pid")
     global pitch_new_error, pitch_pid_corr, pitch_error_area
@@ -181,7 +189,7 @@ def pitch_pid_control():
     # this might improve control with transmitter
 
     # + pitch_pid_corr seems to work
-    pitch_current = -mapping(accelerometer.get_y(),-1024,1024,-20,20)+2
+    pitch_current = -mapping(accelerometer.get_y(),-1024,1024,-90,90)+ 2
     #print("pitch_curr", pitch_current)
 
     #pitch_current = mapping(accelerometer.get_y(),-1023,1023,-90,90)
@@ -200,7 +208,10 @@ def pitch_pid_control():
     pitch_error_area = pitch_error_area + (dt * pitch_new_error)
     # print("err_area", pitch_error_area)
     pitch_i_corr = pitch_ki * pitch_error_area
-    # print("pitch_i_corr", pitch_i_corr)
+    if pitch_i_corr >= pitch_max:
+        pitch_i_corr = pitch_max
+    elif pitch_i_corr <= pitch_min:
+        pitch_i_corr = pitch_min
 
     # Differential
     pitch_error_change = pitch_new_error - pitch_old_error
@@ -208,7 +219,7 @@ def pitch_pid_control():
     pitch_d_corr = pitch_kd * pitch_error_slope
     # print("pitch_d_corr", pitch_d_corr)
 
-    pitch_pid_corr = pitch_p_corr + pitch_i_corr + pitch_d_corr
+    pitch_pid_corr = pitch_p_corr + pitch_i_corr + pitch_d_corr + 2
     #print(pitch_pid_corr)
     #print((pitch_target, pitch_current ,pitch_pid_corr))
     return pitch_pid_corr
@@ -262,13 +273,15 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     if roll < -90:
         roll = -90
 
+    roll = 0
+    pitch = 0
 
     # Scaling and offsetting
     scaled_pitch = int((scale1 * pitch) + offset1)
-    scaled_roll = int((scale1 * roll) + offset2)
+    scaled_roll = int((scale1 * roll) + offset1)
     scaled_yaw = int((scale2 * yaw) + offset1)
     scaled_flight_mode = int(45 * scale2)
-    # scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal
+    #scaled_throttle = int((throttle * offset1) / 50)  # round to nearest decimal
     scaled_throttle = throttle
     scaled_buzzer = 0
 

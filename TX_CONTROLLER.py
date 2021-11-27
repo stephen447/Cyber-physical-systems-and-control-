@@ -41,24 +41,25 @@ encoder_pinB = pin6
 encoder_pinA = pin7
 pitch_pin = pin1
 roll_pin = pin2
-display.off()
+#display.off()
 
 
 # PID
 # Need to find a way of calculating these values
 t2 = 0
 t1 = 0
-dt = 1
+dt = 0.02
 
 
 '''****************************************************************************
 Throttle PID control
 ****************************************************************************'''
-throttle_target = 800; throttle_current = 0; throttle_new_error = 0
+throttle_target = 10; throttle_current = 0; throttle_new_error = 0
 throttle_old_error = 0; throttle_error_area = 0; throttle_pid_corr = 0
+max_throttle = 1000
 
-throttle_kp = 0.3
-throttle_ki = 0.1
+throttle_kp = 0.05
+throttle_ki = 0.001
 throttle_kd = 0     #kd not so relevant for throttle
 
 def throttle_pid_control():
@@ -76,16 +77,18 @@ def throttle_pid_control():
     # Integral
     throttle_error_area += dt * throttle_new_error
     throttle_i_corr = throttle_ki * throttle_error_area
-    if throttle_i_corr > 1023:
+    if throttle_i_corr > max_throttle:
+        # don't allow integral to increase any further
         throttle_error_area = throttle_error_area - (dt * throttle_new_error)
         throttle_i_corr = throttle_ki * throttle_error_area
 
     # Differential
     throttle_error_change = throttle_new_error - throttle_old_error
     throttle_error_slope = throttle_error_change / dt
+
     throttle_d_corr = throttle_kd * throttle_error_slope
 
-    throttle_pid_corr = throttle_p_corr + throttle_i_corr + throttle_d_corr
+    throttle_pid_corr = throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr
     print("throttle_p_corr", throttle_p_corr)
     print("throttle_i_corr", throttle_i_corr)
     print("throttle_d_corr", throttle_d_corr)
@@ -185,7 +188,7 @@ Main loop
 display.set_pixel(0, 0, 9)
 while True:
     # receive battery message
-    battery_msg = radio.receive()
+    #battery_msg = radio.receive()
 
     if battery_msg:
         battery = float(battery_msg)
@@ -210,7 +213,7 @@ while True:
         arm = 0
         throttle = 0
         # first string is blank, just to be on the same side, data from second string
-        command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
+        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
         display.set_pixel(0, 0, 9)
         display.set_pixel(1, 1, 0)
 
@@ -221,7 +224,7 @@ while True:
         if arm == 0:
             arm = 1
             # Throttle needs to be 0 for arming
-            command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
+            command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
             radio.send(command)
             display.set_pixel(0, 0, 0)
             display.set_pixel(1, 1, 9)
@@ -229,7 +232,7 @@ while True:
         else:
             throttle = 0
             arm = 0
-            command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
+            command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
             radio.send(command)
             display.set_pixel(1, 1, 0)
             display.set_pixel(0, 0, 9)
@@ -242,8 +245,8 @@ while True:
 
 
     if arm == 1:
-        throttle = int( throttle_pid_corr +  throttle_pid_control())
-        command = ""+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
+        throttle = int(  throttle_pid_control())
+        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio
 
     sleep(10)

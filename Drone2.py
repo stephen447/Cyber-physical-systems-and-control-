@@ -1,3 +1,4 @@
+# Write your code here :-)
 # Keshav Sapkota and Stephen Bryne
 # Drone.py
 
@@ -16,8 +17,8 @@ import math
 radio.on()
 radio.config(channel=78, address = 0x55555555, group= 9)
 # initialize UART communication
-#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
-uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
+#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
 
 
@@ -290,7 +291,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     buf[14] = (buzzer_id << 2) | ((scaled_buzzer >> 8) & 3)
     buf[15] = scaled_buzzer & 255
 
-    #uart.write(buf)
+    uart.write(buf)
 
 
 
@@ -300,35 +301,30 @@ Main loop
 while True:
     battery = pin0.read_analog()
     display_battery_level(battery)
-    radio.send(str(battery))
+    #radio.send(str(battery))
 
     incoming = radio.receive()
 
     if incoming:
-        # display.scroll(incoming)
-        # print("incoming")
-        parsed_incoming = incoming.split(",")
-        #print(parsed_incoming)
+        if len(incoming) > 3:
+            #print(incoming)
+            # display.scroll(incoming)
+            # print("incoming"
+            parsed_incoming = incoming.split(",")
+            #print(parsed_incoming)
+            # print("Parsed incoming", parsed_incoming)
+
+            if int(parsed_incoming[0]) == 0:
+                # check comment at the bottom *****
+                pitch = int(parsed_incoming[1])
+                arm = int(parsed_incoming[2])
+                roll = int(parsed_incoming[3])
+                throttle = int(parsed_incoming[4])
+                yaw = int(parsed_incoming[5])
 
 
-        # print("Parsed incoming", parsed_incoming)
-
-        if int(parsed_incoming[0]) == 1:
-            # check comment at the bottom *****
-            pitch = int(parsed_incoming[1])
-            arm = int(parsed_incoming[2])
-            roll = int(parsed_incoming[3])
-            throttle = int(parsed_incoming[4])
-            yaw = int(parsed_incoming[5])
-
-            command2 = "0"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
-            print(command2)
-            radio.send(command2)
-
-
-    if arm == 1:
-
-        flight_control(pitch, arm, roll, throttle, 0)
+                if arm == 1:
+                    flight_control(pitch, arm, roll, throttle, 0)
 
     else:
         throttle = 0

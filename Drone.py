@@ -358,6 +358,7 @@ while True:
             command2 = "0"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
             #print(command2)
             radio.send(command2)
+            sleep(10)
 
 
     if arm == 1:

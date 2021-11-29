@@ -243,7 +243,6 @@ while True:
             t2 = 0
             sleep(500) # to prevent switch bouncing effect
 
-
     if arm == 1:
         throttle = int(  throttle_pid_control())
         command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(750)+","+str(0)

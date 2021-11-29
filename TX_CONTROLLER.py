@@ -54,7 +54,7 @@ dt = 0.02
 '''****************************************************************************
 Throttle PID control
 ****************************************************************************'''
-throttle_target = 10; throttle_current = 0; throttle_new_error = 0
+throttle_target = 1000; throttle_current = 0; throttle_new_error = 0
 throttle_old_error = 0; throttle_error_area = 0; throttle_pid_corr = 0
 max_throttle = 1000
 
@@ -246,7 +246,7 @@ while True:
 
     if arm == 1:
         throttle = int(  throttle_pid_control())
-        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
+        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(750)+","+str(0)
         radio.send(command)  # Send command via radio
 
     sleep(10)

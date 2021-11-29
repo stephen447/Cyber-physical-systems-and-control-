@@ -189,8 +189,9 @@ display.set_pixel(0, 0, 9)
 while True:
     # receive battery message
     #battery_msg = radio.receive()
+    #print(battery_msg)
 
-    if battery_msg:
+    if battery_msg :
         battery = float(battery_msg)
         display_battery_level(battery)
         total_battery = total_battery + battery

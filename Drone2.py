@@ -17,8 +17,8 @@ import math
 radio.on()
 radio.config(channel=78, address = 0x55555555, group= 9)
 # initialize UART communication
-#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
-uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
+uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=pin1, rx=pin8)
+#uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 micropython.kbd_intr(-1)  # enabling or disabling keyboard interrupt
 
 rad_to_deg = 180/3.1416
@@ -321,7 +321,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     buf[14] = (buzzer_id << 2) | ((scaled_buzzer >> 8) & 3)
     buf[15] = scaled_buzzer & 255
 
-    #uart.write(buf)
+    uart.write(buf)
 
 
 

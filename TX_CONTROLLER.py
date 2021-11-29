@@ -41,7 +41,7 @@ encoder_pinB = pin6
 encoder_pinA = pin7
 pitch_pin = pin1
 roll_pin = pin2
-#display.off()
+display.off()
 
 
 # PID
@@ -54,16 +54,16 @@ dt = 0.02
 '''****************************************************************************
 Throttle PID control
 ****************************************************************************'''
-throttle_target = 1000; throttle_current = 0; throttle_new_error = 0
+throttle_target = 600; throttle_current = 0; throttle_new_error = 0
 throttle_old_error = 0; throttle_error_area = 0; throttle_pid_corr = 0
-max_throttle = 1000
+max_throttle = 1000; throttle_i_corr = 0
 
-throttle_kp = 0.05
-throttle_ki = 0.001
+throttle_kp = 0.01
+throttle_ki = 0.002#0.1
 throttle_kd = 0     #kd not so relevant for throttle
 
 def throttle_pid_control():
-    global throttle_new_error, throttle_pid_corr, throttle_error_area, t1
+    global throttle_new_error, throttle_pid_corr, throttle_error_area, t1, throttle_i_corr
     throttle_current = throttle_pid_corr
     #throttle_current = throttle_encoder()
     #print((0,0,throttle_current))
@@ -75,24 +75,25 @@ def throttle_pid_control():
     throttle_p_corr = throttle_kp * throttle_new_error
 
     # Integral
-    throttle_error_area += dt * throttle_new_error
-    throttle_i_corr = throttle_ki * throttle_error_area
-    if throttle_i_corr > max_throttle:
-        # don't allow integral to increase any further
-        throttle_error_area = throttle_error_area - (dt * throttle_new_error)
-        throttle_i_corr = throttle_ki * throttle_error_area
+    #if (throttle_new_error > throttle_target - 100 ) and (throttle_new_error < throttle_target + 100):
+    if throttle_new_error > -100 and throttle_new_error < 100:
+        throttle_i_corr += throttle_ki * throttle_new_error
+    else:
+        throttle_i_corr = 0
 
     # Differential
     throttle_error_change = throttle_new_error - throttle_old_error
     throttle_error_slope = throttle_error_change / dt
-
     throttle_d_corr = throttle_kd * throttle_error_slope
 
     throttle_pid_corr = throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr
-    print("throttle_p_corr", throttle_p_corr)
-    print("throttle_i_corr", throttle_i_corr)
-    print("throttle_d_corr", throttle_d_corr)
-    print((throttle_target,throttle_current,throttle_pid_corr))
+
+    if throttle_pid_corr > max_throttle:
+        throttle_pid_corr = max_throttle
+    #print("throttle_p_corr", throttle_p_corr)
+    #print("throttle_i_corr", throttle_i_corr)
+    #print("throttle_d_corr", throttle_d_corr)
+    print((throttle_d_corr,throttle_current,throttle_pid_corr))
     #print("throttle", throttle_pid_corr)
     return throttle_pid_corr
 
@@ -240,13 +241,15 @@ while True:
             throttle_new_error = 0
             throttle_pid_corr = 0
             throttle_error_area = 0
+            throttle_p_corr = 0; throttle_i_corr = 0; throttle_d_corr = 0
+            throttle_encoder_val = 0
             t1 = 0
             t2 = 0
             sleep(500) # to prevent switch bouncing effect
 
     if arm == 1:
         throttle = int(  throttle_pid_control())
-        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(750)+","+str(0)
+        command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio
 
     sleep(10)

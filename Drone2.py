@@ -345,6 +345,8 @@ while True:
             # print("Parsed incoming", parsed_incoming)
 
             if int(parsed_incoming[0]) == 0:
+                display.set_pixel(2,2,9)
+                radio.send("4")
                 # check comment at the bottom *****
                 pitch = int(parsed_incoming[1])
                 arm = int(parsed_incoming[2])
@@ -365,5 +367,6 @@ while True:
         pitch_p_corr = 0; pitch_i_corr = 0; pitch_d_corr = 0; pitch_error_area = 0; pitch_new_error = 0
         pitch_ang = 0; roll_ang = 0
 
+    display.set_pixel(2,2,0)
     sleep(10)
 

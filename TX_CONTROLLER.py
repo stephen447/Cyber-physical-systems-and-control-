@@ -139,6 +139,7 @@ while True:
             display.set_pixel(0, 0, 0)
             display.set_pixel(1, 1, 9)
             sleep(500) #to prevent switch bouncing effect
+
         else:
             throttle = 0
             arm = 0
@@ -147,6 +148,7 @@ while True:
             display.set_pixel(1, 1, 0)
             display.set_pixel(0, 0, 9)
             sleep(500) # to prevent switch bouncing effect
+
 
     if arm == 1:
         # Throttle
@@ -165,7 +167,7 @@ while True:
 
         # Roll
         #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
-        roll=-mapping(int(pin0.read_analog()),0,1023,-90,90)
+        roll=-mapping(int(pin0.read_analog()),0,1023,-10,10)
         if roll>90: roll=90
         if roll<-90: roll=-90
         print("roll ", roll)
@@ -173,7 +175,7 @@ while True:
 
         # Pitch
         #pitch=-mapping(accelerometer.get_y(),-1024,1024,-90,90)
-        pitch=-mapping(int(pin1.read_analog()),0,1023,-90,90)
+        pitch=-mapping(int(pin1.read_analog()),0,1023,-10,10)
         if pitch>90: pitch=90
         if pitch<-90: pitch=-90
         print("pitch ", pitch)

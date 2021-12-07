@@ -341,7 +341,7 @@ Main loop
 while True:
     battery = pin0.read_analog()
     display_battery_level(battery)
-    radio.send(str(battery))
+    #radio.send(str(battery))
 
     incoming = radio.receive()
 

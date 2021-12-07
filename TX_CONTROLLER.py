@@ -37,67 +37,13 @@ yaw = 0
 
 # Pins for rotary encoder and joystick
 # Pins connected to display require display to be off
+'''
 encoder_pinB = pin6
 encoder_pinA = pin7
 pitch_pin = pin1
 roll_pin = pin2
 display.off()
-
-
-# PID
-# Need to find a way of calculating these values
-t2 = 0
-t1 = 0
-dt = 0.02
-
-
-'''****************************************************************************
-Throttle PID control
-****************************************************************************'''
-throttle_target = 600; throttle_current = 0; throttle_new_error = 0
-throttle_old_error = 0; throttle_error_area = 0; throttle_pid_corr = 0
-max_throttle = 1000; throttle_i_corr = 0
-
-throttle_kp = 0.01
-throttle_ki = 0.002#0.1
-throttle_kd = 0     #kd not so relevant for throttle
-
-def throttle_pid_control():
-    global throttle_new_error, throttle_pid_corr, throttle_error_area, t1, throttle_i_corr
-    throttle_current = throttle_pid_corr
-    #throttle_current = throttle_encoder()
-    #print((0,0,throttle_current))
-
-    throttle_old_error = throttle_new_error
-    throttle_new_error = throttle_target - throttle_current
-
-    # Proportional
-    throttle_p_corr = throttle_kp * throttle_new_error
-
-    # Integral
-    #if (throttle_new_error > throttle_target - 100 ) and (throttle_new_error < throttle_target + 100):
-    if throttle_new_error > -100 and throttle_new_error < 100:
-        throttle_i_corr += throttle_ki * throttle_new_error
-    else:
-        throttle_i_corr = 0
-
-    # Differential
-    throttle_error_change = throttle_new_error - throttle_old_error
-    throttle_error_slope = throttle_error_change / dt
-    throttle_d_corr = throttle_kd * throttle_error_slope
-
-    throttle_pid_corr = throttle_pid_corr + throttle_p_corr + throttle_i_corr + throttle_d_corr
-
-    if throttle_pid_corr > max_throttle:
-        throttle_pid_corr = max_throttle
-    #print("throttle_p_corr", throttle_p_corr)
-    #print("throttle_i_corr", throttle_i_corr)
-    #print("throttle_d_corr", throttle_d_corr)
-    print((throttle_d_corr,throttle_current,throttle_pid_corr))
-    #print("throttle", throttle_pid_corr)
-    return throttle_pid_corr
-
-
+'''
 
 '''****************************************************************************
 Display battery level received from drone
@@ -154,34 +100,6 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 
 
 
-'''****************************************************************************
-Rotary encoder function - Reads throttle value from the encoder and returns
-a number between 0 and 1023.
-****************************************************************************'''
-throttle_encoder_val = 0
-a_prev = 0
-def throttle_encoder():
-    global throttle_encoder_val, a_prev
-    a_curr = encoder_pinA.read_digital()
-    b_curr = encoder_pinB.read_digital()
-    #print((a_curr, 0.50, 0.50))
-
-    if (a_curr != a_prev):
-        if (b_curr != a_curr):
-            throttle_encoder_val += 1
-        else:
-            throttle_encoder_val -= 1
-    a_prev = a_curr
-
-    if throttle_encoder_val > 100:
-        throttle_encoder_val = 100
-    elif throttle_encoder_val < 0:
-        throttle_encoder_val = 0
-
-    temp = mapping(throttle_encoder_val, 0, 100, 0, 1023)
-    #print((throttle_encoder_val, 0, 0))
-    return temp
-
 
 '''****************************************************************************
 Main loop
@@ -198,17 +116,6 @@ while True:
         total_battery = total_battery + battery
         #print("Battery level:", (battery / 1023) * 3.3, "V")
 
-    """
-    if count % count_interval == 0:
-        avg_battery = total_battery / count_interval
-        true_battery = (avg_battery / 1023) * 3.3
-        print("Battery level:", true_battery, "V")
-        total_battery = 0
-        if avg_battery < 300:
-            print("LOW BATTERY RUNNING EMERGENCY PROTOCOLS")
-            #emergency_safety_function() #run function when battery is low
-            #break
-    """
 
     # Failsafe - disarm for emergency stop
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
@@ -225,8 +132,9 @@ while True:
         # if button a and b is pressed - arm / disarm depending on current state
         if arm == 0:
             arm = 1
+            throttle = 0
             # Throttle needs to be 0 for arming
-            command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(0)+","+str(yaw)
+            command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(yaw)
             radio.send(command)
             display.set_pixel(0, 0, 0)
             display.set_pixel(1, 1, 9)
@@ -238,17 +146,39 @@ while True:
             radio.send(command)
             display.set_pixel(1, 1, 0)
             display.set_pixel(0, 0, 9)
-            throttle_new_error = 0
-            throttle_pid_corr = 0
-            throttle_error_area = 0
-            throttle_p_corr = 0; throttle_i_corr = 0; throttle_d_corr = 0
-            throttle_encoder_val = 0
-            t1 = 0
-            t2 = 0
             sleep(500) # to prevent switch bouncing effect
 
     if arm == 1:
-        throttle = int(  throttle_pid_control())
+        # Throttle
+        # If button b was pressed decrease throttle by 5
+        if button_b.was_pressed():
+            throttle += 5
+        if button_a.was_pressed():
+            throttle -= 5
+
+        if throttle > 100 or throttle == 100 : throttle = 100
+        if throttle < 0 or throttle == 0 : throttle = 0
+
+        #throttle = mapping(throttle, 0,100, 0, 1023)
+
+        print(throttle)
+
+        # Roll
+        #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
+        roll=-mapping(int(pin0.read_analog()),0,1023,-90,90)
+        if roll>90: roll=90
+        if roll<-90: roll=-90
+        print("roll ", roll)
+
+
+        # Pitch
+        #pitch=-mapping(accelerometer.get_y(),-1024,1024,-90,90)
+        pitch=-mapping(int(pin1.read_analog()),0,1023,-90,90)
+        if pitch>90: pitch=90
+        if pitch<-90: pitch=-90
+        print("pitch ", pitch)
+        #throttle = int(  throttle_pid_control())
+
         command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio
 

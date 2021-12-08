@@ -105,13 +105,19 @@ def mapping(value, fromLow, fromHigh, toLow, toHigh):
 Main loop
 ****************************************************************************'''
 display.set_pixel(0, 0, 9)
+parsed_incoming = ""
 while True:
     # receive battery message
-    #battery_msg = radio.receive()
-    #print(battery_msg)
+    incoming = radio.receive()
+
+    if incoming:
+        parsed_incoming = incoming.split(",")
+        #print(parsed_incoming)
+        if int(parsed_incoming[0]) == 2:
+            battery_msg = float(parsed_incoming[1])
 
     if battery_msg :
-        battery = float(battery_msg)
+        battery = battery_msg
         display_battery_level(battery)
         total_battery = total_battery + battery
         #print("Battery level:", (battery / 1023) * 3.3, "V")
@@ -163,25 +169,26 @@ while True:
 
         #throttle = mapping(throttle, 0,100, 0, 1023)
 
-        print(throttle)
+        #print(throttle)
 
         # Roll
         #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
-        roll=-mapping(int(pin0.read_analog()),0,1023,-10,10)
+        roll=-mapping(int(pin0.read_analog()),0,1023,-30,30)
         if roll>90: roll=90
         if roll<-90: roll=-90
-        print("roll ", roll)
+        #print("roll ", roll)
 
 
         # Pitch
         #pitch=-mapping(accelerometer.get_y(),-1024,1024,-90,90)
-        pitch=-mapping(int(pin1.read_analog()),0,1023,-10,10)
+        pitch=-mapping(int(pin1.read_analog()),0,1023,-30,30)
         if pitch>90: pitch=90
         if pitch<-90: pitch=-90
-        print("pitch ", pitch)
+        #print("pitch ", pitch)
         #throttle = int(  throttle_pid_control())
 
         command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
+        print(command)
         radio.send(command)  # Send command via radio
 
     sleep(10)

@@ -258,8 +258,11 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
-        roll = roll_pid_control() - 3
+        roll = roll_pid_control()
         pitch = pitch_pid_control()
+        command2 = "0"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
+        #print(command2)
+        radio.send(command2)
         display.set_pixel(1, 1, 9)
         display.set_pixel(0, 0, 0)
 
@@ -270,6 +273,9 @@ def flight_control(pitch, arm, roll, throttle, yaw):
         display.set_pixel(1, 1, 0)
         roll = 0
         pitch = 0
+        command2 = "0"+","+str(0)+","+str(0)+","+str(0)+","+str(0)+","+str(0)
+        #print(command2)
+        radio.send(command2)
 
     # Filter throttle, pitch and roll
 
@@ -348,14 +354,13 @@ while True:
     battery = pin0.read_analog()
     display_battery_level(battery)
 
-    #battery_command = "2"+","+str(battery)
-    '''
-    if counter % 10000:
+    battery_command = "2"+","+str(battery)
+    if counter % 5000:
         #print(counter)
         radio.send(battery_command)
         counter = 0
     counter += 1
-    '''
+
 
     incoming = radio.receive()
 
@@ -370,9 +375,9 @@ while True:
             throttle = int(parsed_incoming[4])
             yaw = int(parsed_incoming[5])
 
-            command2 = "0"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
+            #command2 = "0"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
             #print(command2)
-            radio.send(command2)
+            #radio.send(command2)
             #sleep(10)
 
         # Message received confirmation from second drone

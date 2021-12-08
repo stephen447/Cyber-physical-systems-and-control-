@@ -253,8 +253,8 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
-        roll = roll_pid_control()
-        pitch = pitch_pid_control()
+        #roll = roll_pid_control()
+        #pitch = pitch_pid_control()
         display.set_pixel(1, 1, 9)
         display.set_pixel(0, 0, 0)
 
@@ -348,11 +348,12 @@ while True:
 
         if int(parsed_incoming[0]) == 0:
             #display.set_pixel(2,2,9)
-            pitch = int(parsed_incoming[1])
+            pitch = float(parsed_incoming[1])
             arm = int(parsed_incoming[2])
-            roll = int(parsed_incoming[3])
+            roll = float(parsed_incoming[3])
             throttle = int(parsed_incoming[4])
-            yaw = int(parsed_incoming[5])
+            #yaw = int(parsed_incoming[5])
+            yaw = 0
             #radio.send("3")
 
     if arm == 1:

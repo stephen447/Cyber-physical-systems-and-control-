@@ -33,9 +33,7 @@ flight_mode = 1
 buzzer = 0
 battery = 0
 
-
 dt = 1
-
 
 # Scaling, scale by 3.5 for pitch, roll, throttle and 5 for
 # yaw, arm and flight mode values and formulas are obtained
@@ -131,12 +129,8 @@ def roll_pid_control():
 
     get_curr_ang()
     roll_current = roll_ang
-
-    #print("roll_curr", roll_current)
     roll_old_error = roll_new_error
     roll_new_error = roll_target - roll_current
-
-    #print(roll_new_error)
 
     # Proportional
     roll_p_corr = roll_kp * roll_new_error
@@ -269,8 +263,6 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     # Filter throttle, pitch and roll
 
-
-
     if pitch >90:
         pitch = 90
     if pitch < -90:
@@ -357,7 +349,6 @@ while True:
 
     if arm == 1:
         flight_control(pitch, arm, roll, throttle, 0)
-
 
     else:
         throttle = 0

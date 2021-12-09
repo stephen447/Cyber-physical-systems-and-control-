@@ -184,12 +184,8 @@ pitch_kd = 1#2.05#1#2        #1#11
 def pitch_pid_control():
     global pitch_new_error, pitch_pid_corr, pitch_error_area, pitch_i_corr
 
-    #pitch_current = -mapping(accelerometer.get_y(),-1024,1024,-90,90)+ 2
-    #print("pitch_curr", pitch_current)
-
     pitch_target = pitch
     pitch_current = pitch_ang
-    #print("pitch_curr", pitch_current)
     pitch_old_error = pitch_new_error
     pitch_new_error = pitch_target - pitch_current
 
@@ -246,10 +242,11 @@ def get_curr_ang():
     pitch_ang = 0.98 * pitch_ang + 0.02 * acc_ang0
     roll_ang = 0.98 * roll_ang + 0.02 * acc_ang1
 
-    #print((0,0,roll_ang))
+    #print((0,0,acc_ang0))
 
 
 """************************************************************
+Flight control function, scales PARTY values and writes to buffer
 ************************************************************"""
 def flight_control(pitch, arm, roll, throttle, yaw):
     buf = bytearray(16)
@@ -258,7 +255,7 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
-        roll = roll_pid_control() - 3
+        roll = roll_pid_control()
         pitch = pitch_pid_control()
         display.set_pixel(1, 1, 9)
         display.set_pixel(0, 0, 0)
@@ -349,13 +346,6 @@ while True:
     display_battery_level(battery)
 
     #battery_command = "2"+","+str(battery)
-    '''
-    if counter % 10000:
-        #print(counter)
-        radio.send(battery_command)
-        counter = 0
-    counter += 1
-    '''
 
     incoming = radio.receive()
 
@@ -378,7 +368,6 @@ while True:
         # Message received confirmation from second drone
         #elif int(parsed_incoming[0]) == 3:
         #    display.set_pixel(2,2,9)
-
 
     if arm == 1:
         #print(pitch, arm, roll, throttle, 0)

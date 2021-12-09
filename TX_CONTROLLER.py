@@ -1,5 +1,7 @@
 '''****************************************************************************
-*** Write what this file does here
+Keshav Sapkotak and Stephen Byrne
+Code for gold challenge - Controller code
+09/12/2021
 ****************************************************************************'''
 
 from microbit import *
@@ -35,15 +37,6 @@ throttle = 0
 yaw = 0
 
 
-# Pins for rotary encoder and joystick
-# Pins connected to display require display to be off
-'''
-encoder_pinB = pin6
-encoder_pinA = pin7
-pitch_pin = pin1
-roll_pin = pin2
-display.off()
-'''
 
 '''****************************************************************************
 Display battery level received from drone
@@ -167,9 +160,6 @@ while True:
         if throttle > 100 or throttle == 100 : throttle = 100
         if throttle < 0 or throttle == 0 : throttle = 0
 
-        #throttle = mapping(throttle, 0,100, 0, 1023)
-
-        #print(throttle)
 
         # Roll
         #roll=mapping(accelerometer.get_x(),-1024,1024,-90,90)
@@ -184,8 +174,6 @@ while True:
         pitch=-mapping(int(pin1.read_analog()),0,1023,-30,30)
         if pitch>90: pitch=90
         if pitch<-90: pitch=-90
-        #print("pitch ", pitch)
-        #throttle = int(  throttle_pid_control())
 
         command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         print(command)
@@ -193,31 +181,3 @@ while True:
 
     sleep(10)
 
-
-
-
-    """
-    Information
-    1) No print statements in the Drone code
-    2) To prevent Switch bouncing add sleep(500) inside both button pressed function
-    3) In general keep sleep(10) in both sides
-    6) Don't use display.scroll function in transmitter
-    7) Throttle should be 0 for arming
-    8) Wait few secs to arm, disarm, etc.
-    4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
-    6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)
-        decreasing throttle to low value while testing, etc.
-    7) More convenient to map roll and pitch between -90 and 90.
-    8) Some of the pins are connected to LEDs. To access the pins display must be off.
-    display.off()
-    """
-    '''
-    # Calculate dt
-    t2 = utime.ticks_ms()
-    dt = t2 - t1
-    t1 = t2
-    # reset timer after 2 mins to prevent overflow
-    if (t2 >= 120000):
-        t2 = 0
-        t1 = 0
-    '''

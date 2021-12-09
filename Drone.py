@@ -33,9 +33,7 @@ flight_mode = 1
 buzzer = 0
 battery = 0
 
-
-dt = 20/1000 # sec
-t1 = 0
+dt = 1 # asssume a constant of 1 unit cycle
 
 
 # Scaling, scale by 3.5 for pitch, roll, throttle and 5 for
@@ -122,13 +120,12 @@ roll_target = 0; roll_current = 0; roll_new_error = 0
 roll_old_error = 0; roll_error_area = 0; roll_target = 0
 roll_pid_corr=0; roll_max = 2; roll_min = -2; roll_i_corr = 0
 
-roll_kp = 0.4#3#0.4   #0.2 - 0.3
-roll_ki = 0.005     #0.001 #0.000001 #0.00001# somewhere around 0.002
-roll_kd = 0     #1#11 #10 #4 #10
+roll_kp = 0.4
+roll_ki = 0.005
+roll_kd = 1
 
 def roll_pid_control():
     global roll_new_error, roll_pid_corr, roll_error_area, roll_i_corr
-
 
     get_curr_ang()
     roll_current = roll_ang
@@ -136,8 +133,6 @@ def roll_pid_control():
     #print("roll_curr", roll_current)
     roll_old_error = roll_new_error
     roll_new_error = roll_target - roll_current
-
-    #print(roll_new_error)
 
     # Proportional
     roll_p_corr = roll_kp * roll_new_error
@@ -149,10 +144,10 @@ def roll_pid_control():
 
     # Differential
     roll_error_change = roll_new_error - roll_old_error
-    roll_error_slope = roll_error_change / dt
-    roll_d_corr = roll_kd * roll_error_slope
-
-    if roll_d_corr > 20 or roll_d_corr < -20:
+    if roll_error_change > 10:
+        roll_error_slope = roll_error_change / dt
+        roll_d_corr = roll_kd * roll_error_slope
+    else:
         roll_d_corr = 0
 
     roll_pid_corr =   roll_p_corr + roll_i_corr + roll_d_corr
@@ -173,15 +168,12 @@ pitch_current = 0; pitch_new_error = 0; pitch_old_error = 0
 pitch_error_area = 0; pitch_target = 0; pitch_target = 0
 pitch_pid_corr = 0; pitch_max = 2; pitch_min = -2; pitch_i_corr = 0
 
-pitch_kp = 0.4     #0.08#0.1
-pitch_ki = 0.005#0.05#       0.001 #0.000001
-pitch_kd = 0#2.05#1#2        #1#11
+pitch_kp = 0.4
+pitch_ki = 0.005
+pitch_kd = 1
 
 def pitch_pid_control():
     global pitch_new_error, pitch_pid_corr, pitch_error_area, pitch_i_corr
-
-    #pitch_current = -mapping(accelerometer.get_y(),-1024,1024,-90,90)+ 2
-    #print("pitch_curr", pitch_current)
 
     pitch_current = pitch_ang
     #print("pitch_curr", pitch_current)
@@ -198,10 +190,10 @@ def pitch_pid_control():
 
     # Differential
     pitch_error_change = pitch_new_error - pitch_old_error
-    pitch_error_slope = pitch_error_change / dt
-    pitch_d_corr = pitch_kd * pitch_error_slope
-
-    if pitch_d_corr > 20 or pitch_d_corr < -20:
+    if pitch_error_change > 10:
+        pitch_error_slope = pitch_error_change / dt
+        pitch_d_corr = pitch_kd * pitch_error_slope
+    else:
         pitch_d_corr = 0
 
     pitch_pid_corr = pitch_p_corr + pitch_i_corr + pitch_d_corr
@@ -211,7 +203,6 @@ def pitch_pid_control():
     #print("d_corr", pitch_d_corr)
     #print((pitch_target, pitch_current, pitch_pid_corr))
     return pitch_pid_corr
-
 
 
 pitch_ang = 0; roll_ang = 0
@@ -251,11 +242,13 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 
     if arm == 1:
         scaled_arm = int(180 * scale2)
+
+        # PID CONTROL
         roll = roll_pid_control()
         pitch = pitch_pid_control()
+
         display.set_pixel(1, 1, 9)
         display.set_pixel(0, 0, 0)
-
 
     else:
         scaled_arm = 0
@@ -263,7 +256,6 @@ def flight_control(pitch, arm, roll, throttle, yaw):
         display.set_pixel(1, 1, 0)
         roll = 0
         pitch = 0
-
 
     # Filter throttle, pitch and roll
 
@@ -282,8 +274,6 @@ def flight_control(pitch, arm, roll, throttle, yaw):
     if roll < -90:
         roll = -90
 
-    #roll = 0
-    #pitch = 0
     # Scaling and offsetting
     scaled_pitch = int((scale1 * pitch) + offset1)
     scaled_roll = int((scale1 * roll) + offset1)
@@ -332,10 +322,19 @@ def flight_control(pitch, arm, roll, throttle, yaw):
 """************************************************************
 Main loop
 ************************************************************"""
+counter = 0
 while True:
     battery = pin0.read_analog()
     display_battery_level(battery)
-    radio.send(str(battery))
+
+    # Encode id 2 in-front of battery messages
+    battery_command = "2"+","+str(battery)
+    # Only send battery message every once in a while
+    if counter % 5000:
+        #print(counter)
+        radio.send(battery_command)
+        counter = 0
+    counter += 1
 
     incoming = radio.receive()
 
@@ -343,11 +342,6 @@ while True:
         # display.scroll(incoming)
         # print("incoming")
         parsed_incoming = incoming.split(",")
-        #print(parsed_incoming)
-        #if int(parsed_incoming[0]) == 4:
-        #    display.set_pixel(2,2,9)
-
-        # print("Parsed incoming", parsed_incoming)
 
         if int(parsed_incoming[0]) == 1:
             # check comment at the bottom *****
@@ -362,6 +356,9 @@ while True:
             radio.send(command2)
             #sleep(10)
 
+        # if confirmation recieved from drone 2
+        elif int(parsed_incoming[0]) == 3:
+            display.set_pixel(2,2,9)
 
     if arm == 1:
 
@@ -375,6 +372,6 @@ while True:
         pitch_p_corr = 0; pitch_i_corr = 0; pitch_d_corr = 0; pitch_error_area = 0; pitch_new_error = 0
         pitch_ang = 0; roll_ang = 0
 
-    #display.set_pixel(2,2,0)
+    display.set_pixel(2,2,0)
     sleep(10)
 

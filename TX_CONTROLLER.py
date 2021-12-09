@@ -1,5 +1,7 @@
 '''****************************************************************************
-*** Write what this file does here
+Keshav Sapkota and Stephen Byrne
+Code for Silver Challenge
+09/12/2021
 ****************************************************************************'''
 
 from microbit import *
@@ -8,12 +10,10 @@ import micropython
 import math
 import utime
 
-
 radio.on()
 radio.config(channel = 78, address = 0x55555555, group = 9)
 uart.init(baudrate=115200, bits=8, parity=None, stop=1, tx=None, rx=None)
 micropython.kbd_intr(-1)
-
 
 count = 0
 count_interval = 200
@@ -41,14 +41,12 @@ encoder_pinB = pin6
 encoder_pinA = pin7
 pitch_pin = pin1
 roll_pin = pin2
-display.off()
+#display.off()
 
 
 # PID
 # Need to find a way of calculating these values
-t2 = 0
-t1 = 0
-dt = 0.02
+dt = 1
 
 
 '''****************************************************************************
@@ -189,26 +187,20 @@ Main loop
 display.set_pixel(0, 0, 9)
 while True:
     # receive battery message
-    #battery_msg = radio.receive()
-    #print(battery_msg)
+    incoming = radio.receive()
+
+    if incoming:
+        parsed_incoming = incoming.split(",")
+        #print(parsed_incoming)
+        if int(parsed_incoming[0]) == 2:
+            battery_msg = float(parsed_incoming[1])
 
     if battery_msg :
-        battery = float(battery_msg)
+        battery = battery_msg
         display_battery_level(battery)
         total_battery = total_battery + battery
         #print("Battery level:", (battery / 1023) * 3.3, "V")
 
-    """
-    if count % count_interval == 0:
-        avg_battery = total_battery / count_interval
-        true_battery = (avg_battery / 1023) * 3.3
-        print("Battery level:", true_battery, "V")
-        total_battery = 0
-        if avg_battery < 300:
-            print("LOW BATTERY RUNNING EMERGENCY PROTOCOLS")
-            #emergency_safety_function() #run function when battery is low
-            #break
-    """
 
     # Failsafe - disarm for emergency stop
     if accelerometer.was_gesture('shake'):  # Killswitch - using the predefined gestures
@@ -248,37 +240,9 @@ while True:
             sleep(500) # to prevent switch bouncing effect
 
     if arm == 1:
-        throttle = int(  throttle_pid_control())
+        throttle = int(throttle_pid_control())
         command = "1"+","+str(pitch)+","+str(arm)+","+str(roll)+","+str(throttle)+","+str(0)
         radio.send(command)  # Send command via radio
 
     sleep(10)
 
-
-
-
-    """
-    Information
-    1) No print statements in the Drone code
-    2) To prevent Switch bouncing add sleep(500) inside both button pressed function
-    3) In general keep sleep(10) in both sides
-    6) Don't use display.scroll function in transmitter
-    7) Throttle should be 0 for arming
-    8) Wait few secs to arm, disarm, etc.
-    4) Throttle = 40-45 is the point of lift-off, half of joystick action used at this point.
-    6) Think of approaches to save battery - things like going to sleep (coz radio is contantly working)
-        decreasing throttle to low value while testing, etc.
-    7) More convenient to map roll and pitch between -90 and 90.
-    8) Some of the pins are connected to LEDs. To access the pins display must be off.
-    display.off()
-    """
-    '''
-    # Calculate dt
-    t2 = utime.ticks_ms()
-    dt = t2 - t1
-    t1 = t2
-    # reset timer after 2 mins to prevent overflow
-    if (t2 >= 120000):
-        t2 = 0
-        t1 = 0
-    '''
